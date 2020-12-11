@@ -31,12 +31,12 @@ import android.webkit.SslErrorHandler;
 import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
+import com.reactnativecommunity.crosswalk.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import com.reactnativecommunity.crosswalk.WebSettings;
+import com.reactnativecommunity.crosswalk.WebView;
+import com.reactnativecommunity.crosswalk.WebViewClient;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
@@ -341,7 +341,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   @ReactProp(name = "thirdPartyCookiesEnabled")
   public void setThirdPartyCookiesEnabled(WebView view, boolean enabled) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      CookieManager.getInstance().setAcceptThirdPartyCookies(view, enabled);
+      //CookieManager.getInstance().setAcceptThirdPartyCookies(view, enabled);
+      view.getSettings().setCookiesEnabled(enabled);
     }
   }
 
@@ -1158,9 +1159,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, android.webkit.WebChromeClient.FileChooserParams fileChooserParams) {
       String[] acceptTypes = fileChooserParams.getAcceptTypes();
-      boolean allowMultiple = fileChooserParams.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
+      boolean allowMultiple = fileChooserParams.getMode() == android.webkit.WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
       return getModule(mReactContext).startPhotoPickerIntent(filePathCallback, acceptTypes, allowMultiple);
     }
 
@@ -1169,13 +1170,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && mVideoView != null && mVideoView.getSystemUiVisibility() != FULLSCREEN_SYSTEM_UI_VISIBILITY) {
         mVideoView.setSystemUiVisibility(FULLSCREEN_SYSTEM_UI_VISIBILITY);
       }
+      ((WebView) mWebView).onResume();
     }
 
     @Override
-    public void onHostPause() { }
+    public void onHostPause() {
+      ((WebView) mWebView).onPause();
+    }
 
     @Override
-    public void onHostDestroy() { }
+    public void onHostDestroy() {
+      ((WebView) mWebView).onDestroy();
+    }
 
     protected ViewGroup getRootView() {
       return (ViewGroup) mReactContext.getCurrentActivity().findViewById(android.R.id.content);

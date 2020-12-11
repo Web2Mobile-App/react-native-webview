@@ -1,6 +1,6 @@
 package com.reactnativecommunity.webview;
 
-import android.webkit.WebView;
+import com.reactnativecommunity.crosswalk.WebView;
 
 /**
  * Implement this interface in order to config your {@link WebView}. An instance of that

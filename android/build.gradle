@@ -62,6 +62,10 @@ repositories {
   jcenter()
   google()
 
+  flatDir {
+    dirs 'libs'
+  }
+
   def found = false
   def defaultDir = null
   def androidSourcesName = 'React Native sources'
@@ -131,6 +135,7 @@ repositories {
 def kotlin_version = getExtOrDefault('kotlinVersion')
 
 dependencies {
+  compileOnly fileTree(dir: 'libs', include: ['*.aar'])
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

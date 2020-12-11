@@ -22,7 +22,8 @@
     "build": "yarn tsc",
     "prepare": "yarn build",
     "appium": "appium",
-    "test:windows": "yarn jest --setupFiles=./jest-setups/jest.setup.windows.js"
+    "test:windows": "yarn jest --setupFiles=./jest-setups/jest.setup.windows.js",
+    "yalc-publish": "yalc update && yarn && yalc publish --private"
   },
   "rn-docs": {
     "title": "Webview",
