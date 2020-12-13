@@ -1491,4 +1491,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       }
     }
   }
+
+  @ReactProp(name = "useCrosswalk")
+  public void setUseCrosswalk(WebView webView, boolean useCrosswalk) {
+    webView.setUseCrosswalk(useCrosswalk);
+  }
 }

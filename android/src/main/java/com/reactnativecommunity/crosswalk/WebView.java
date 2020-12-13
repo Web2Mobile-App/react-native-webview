@@ -53,8 +53,8 @@ public class WebView extends FrameLayout {
   private WebViewClient webViewClient;
   private WebChromeClient webChromeClient;
 
+  private boolean useCrosswalk = false;
   private android.webkit.WebView webkitView;
-
   private XWalkActivityDelegate walkActivityDelegate;
   private XWalkView walkView;
 
@@ -88,7 +88,7 @@ public class WebView extends FrameLayout {
     super.onAttachedToWindow();
 
     ThemedReactContext reactContext = (ThemedReactContext) getContext();
-    if (useCrosswalk()) {
+    if (useCrosswalk) {
       initializeCrosswalk(reactContext);
     } else {
       initializeWebkit(reactContext);
@@ -113,10 +113,6 @@ public class WebView extends FrameLayout {
     super.onLayout(changed, left, top, right, bottom);
 
     updateLayout(right - left, bottom - top);
-  }
-
-  protected boolean useCrosswalk() {
-    return false;
   }
 
   private void initializeCrosswalk(@NonNull ThemedReactContext reactContext) {
@@ -617,16 +613,28 @@ public class WebView extends FrameLayout {
     reloadData();
   }
 
-  public XWalkView getWalkView() {
-    return walkView;
-  }
-
-  public android.webkit.WebView getWebkitView() {
-    return webkitView;
-  }
-
   public WebSettings getSettings() {
     return webSettings;
+  }
+
+  public int getProgress() {
+    return progress;
+  }
+
+  public void setWebViewClient(WebViewClient client) {
+    this.webViewClient = client;
+  }
+
+  public void setWebChromeClient(WebChromeClient client) {
+    this.webChromeClient = client;
+  }
+
+  public void setUseCrosswalk(boolean useCrosswalk) {
+    this.useCrosswalk = useCrosswalk;
+  }
+
+  public void setDownloadListener(final DownloadListener listener) {
+    this.downloadListener = listener;
   }
 
   public String getTitle() {
@@ -653,22 +661,6 @@ public class WebView extends FrameLayout {
       return webkitView.getUrl();
     }
     return null;
-  }
-
-  public int getProgress() {
-    return progress;
-  }
-
-  public void setWebViewClient(WebViewClient client) {
-    this.webViewClient = client;
-  }
-
-  public void setWebChromeClient(WebChromeClient client) {
-    this.webChromeClient = client;
-  }
-
-  public void setDownloadListener(final DownloadListener listener) {
-    this.downloadListener = listener;
   }
 
   public void onResume() {
