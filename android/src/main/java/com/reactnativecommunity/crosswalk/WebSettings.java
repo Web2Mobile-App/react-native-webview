@@ -276,11 +276,11 @@ public class WebSettings {
 
   public void setSupportMultipleWindows(boolean support) {
     this.supportMultipleWindows = support;
-    if (walkSettings != null) {
-      walkSettings.setSupportMultipleWindows(support);
-    } else if (webkitSettings != null) {
+    if (webkitSettings != null) {
       webkitSettings.setSupportMultipleWindows(support);
-    }
+    }/* else if (walkSettings != null) {
+      walkSettings.setSupportMultipleWindows(support);
+    }*/
   }
 
   public void setDatabaseEnabled(boolean flag) {

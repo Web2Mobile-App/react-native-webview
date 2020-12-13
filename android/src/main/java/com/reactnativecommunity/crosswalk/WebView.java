@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.DownloadListener;
+import android.webkit.GeolocationPermissions;
+import android.webkit.PermissionRequest;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
@@ -250,6 +252,43 @@ public class WebView extends FrameLayout {
     });
     webkitView.setWebChromeClient(new android.webkit.WebChromeClient() {
       @Override
+      public void onPermissionRequest(PermissionRequest request) {
+        super.onPermissionRequest(request);
+
+        if (webChromeClient != null) {
+          webChromeClient.onPermissionRequest(request);
+        }
+      }
+
+      @Override
+      public void onProgressChanged(android.webkit.WebView view, int newProgress) {
+        super.onProgressChanged(view, newProgress);
+
+        if (webChromeClient != null) {
+          webChromeClient.onProgressChanged(webView, newProgress);
+        }
+      }
+
+      @Override
+      public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+        super.onGeolocationPermissionsShowPrompt(origin, callback);
+
+        if (webChromeClient != null) {
+          webChromeClient.onGeolocationPermissionsShowPrompt(origin, callback);
+        }
+      }
+
+      @Override
+      public boolean onShowFileChooser(android.webkit.WebView view,
+                                       ValueCallback<Uri[]> filePathCallback,
+                                       FileChooserParams fileChooserParams) {
+        if (webChromeClient != null) {
+          return webChromeClient.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+        }
+        return super.onShowFileChooser(view, filePathCallback, fileChooserParams);
+      }
+
+      @Override
       public void onShowCustomView(View view, CustomViewCallback callback) {
         super.onShowCustomView(view, callback);
 
@@ -363,30 +402,6 @@ public class WebView extends FrameLayout {
     final WebView webView = this;
     walkView.setResourceClient(new XWalkResourceClient(walkView) {
       @Override
-      public void onLoadStarted(XWalkView view, String url) {
-        super.onLoadStarted(view, url);
-        if (!WebUtils.isSameUrl(url, view.getUrl())) {
-          return;
-        }
-
-        if (webViewClient != null) {
-          webViewClient.onPageStarted(webView, url, null);
-        }
-      }
-
-      @Override
-      public void onLoadFinished(XWalkView view, String url) {
-        super.onLoadFinished(view, url);
-        if (!WebUtils.isSameUrl(url, view.getUrl())) {
-          return;
-        }
-
-        if (webViewClient != null) {
-          webViewClient.onPageFinished(webView, url);
-        }
-      }
-
-      @Override
       public boolean shouldOverrideUrlLoading(XWalkView view, String url) {
         if (webViewClient != null) {
           return webViewClient.shouldOverrideUrlLoading(webView, url);
@@ -482,6 +497,24 @@ public class WebView extends FrameLayout {
       }
     });
     walkView.setUIClient(new XWalkUIClient(walkView) {
+      @Override
+      public void onPageLoadStarted(XWalkView view, String url) {
+        super.onPageLoadStarted(view, url);
+
+        if (webViewClient != null) {
+          webViewClient.onPageStarted(webView, url, null);
+        }
+      }
+
+      @Override
+      public void onPageLoadStopped(XWalkView view, String url, LoadStatus status) {
+        super.onPageLoadStopped(view, url, status);
+
+        if (webViewClient != null) {
+          webViewClient.onPageFinished(webView, url);
+        }
+      }
+
       @Override
       public void onShowCustomView(View view, CustomViewCallback callback) {
         super.onShowCustomView(view, callback);
