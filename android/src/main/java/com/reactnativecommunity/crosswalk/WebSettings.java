@@ -7,6 +7,7 @@ import android.webkit.CookieManager;
 import androidx.annotation.RequiresApi;
 
 import org.xwalk.core.XWalkCookieManager;
+import org.xwalk.core.XWalkPreferences;
 import org.xwalk.core.XWalkSettings;
 import org.xwalk.core.XWalkView;
 
@@ -21,6 +22,8 @@ public class WebSettings {
   public static final int MIXED_CONTENT_ALWAYS_ALLOW = 0;
   public static final int MIXED_CONTENT_NEVER_ALLOW = 1;
   public static final int MIXED_CONTENT_COMPATIBILITY_MODE = 2;
+
+  private static boolean webContentsDebuggingEnabled = false;
 
   private XWalkCookieManager walkCookieManager;
   private XWalkView walkView;
@@ -54,6 +57,10 @@ public class WebSettings {
   private String databasePath;
 
   public WebSettings() {
+  }
+
+  public static void setWebContentsDebuggingEnabled(boolean enabled) {
+    webContentsDebuggingEnabled = enabled;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -195,6 +202,9 @@ public class WebSettings {
 
   public void setUserAgentString(String ua) {
     this.userAgentString = ua;
+    if (ua == null || ua.length() == 0) {
+      return;
+    }
     if (walkSettings != null) {
       walkSettings.setUserAgentString(ua);
     } else if (webkitSettings != null) {
@@ -300,6 +310,14 @@ public class WebSettings {
   }
 
   private void reload() {
+    if (webkitSettings != null) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        android.webkit.WebView.setWebContentsDebuggingEnabled(webContentsDebuggingEnabled);
+      }
+    } else if (walkSettings != null) {
+      XWalkPreferences.setValue(XWalkPreferences.REMOTE_DEBUGGING, webContentsDebuggingEnabled);
+    }
+
     setBuiltInZoomControls(builtInZoomControls);
     setDisplayZoomControls(displayZoomControls);
     setDomStorageEnabled(domStorageEnabled);

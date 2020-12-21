@@ -70,10 +70,7 @@ public class WebView extends FrameLayout {
   private int progress;
 
   public static void setWebContentsDebuggingEnabled(boolean enabled) {
-    XWalkPreferences.setValue(XWalkPreferences.REMOTE_DEBUGGING, enabled);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      android.webkit.WebView.setWebContentsDebuggingEnabled(enabled);
-    }
+    WebSettings.setWebContentsDebuggingEnabled(enabled);
   }
 
   public WebView(@NonNull ThemedReactContext reactContext) {
