@@ -295,6 +295,20 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
     }
   };
 
+  onResourceLoadStarted = (event: WebViewNavigationEvent) => {
+    const { onResourceLoadStart } = this.props;
+    if (onResourceLoadStart) {
+      onResourceLoadStart(event);
+    }
+  }
+
+  onResourceLoadFinished = (event: WebViewNavigationEvent) => {
+    const { onResourceLoadFinish } = this.props;
+    if (onResourceLoadFinish) {
+      onResourceLoadFinish(event);
+    }
+  }
+
   render() {
     const {
       onMessage,
@@ -364,6 +378,8 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
         onRenderProcessGone={this.onRenderProcessGone}
         onMessage={this.onMessage}
         onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+        onResourceLoadStarted={this.onResourceLoadStarted}
+        onResourceLoadFinished={this.onResourceLoadFinished}
         ref={this.webViewRef}
         // TODO: find a better way to type this.
         source={resolveAssetSource(source as ImageSourcePropType)}

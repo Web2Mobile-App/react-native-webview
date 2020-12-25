@@ -802,7 +802,7 @@ static NSDictionary* customCertificatesForHost;
 {
 #if !TARGET_OS_OSX
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:message preferredStyle:UIAlertControllerStyleAlert];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+  [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK button") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
     completionHandler();
   }]];
   [[self topViewController] presentViewController:alert animated:YES completion:NULL];
@@ -821,10 +821,10 @@ static NSDictionary* customCertificatesForHost;
 - (void)webView:(WKWebView *)webView runJavaScriptConfirmPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(BOOL))completionHandler{
 #if !TARGET_OS_OSX
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:message preferredStyle:UIAlertControllerStyleAlert];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+  [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK button") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
     completionHandler(YES);
   }]];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+  [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"Cancel button") style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
     completionHandler(NO);
   }]];
   [[self topViewController] presentViewController:alert animated:YES completion:NULL];
@@ -849,11 +849,11 @@ static NSDictionary* customCertificatesForHost;
   [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
     textField.text = defaultText;
   }];
-  UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+  UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK button") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
     completionHandler([[alert.textFields lastObject] text]);
   }];
   [alert addAction:okAction];
-  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"Cancel button") style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
     completionHandler(nil);
   }];
   [alert addAction:cancelAction];

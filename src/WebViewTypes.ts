@@ -302,6 +302,8 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   thirdPartyCookiesEnabled?: boolean;
   messagingModuleName?: string;
   readonly urlPrefixesForDefaultIntent?: string[];
+  onResourceLoadStarted: (event: WebViewNavigationEvent) => void;
+  onResourceLoadFinished: (event: WebViewNavigationEvent) => void;
 }
 
 export declare type ContentInsetAdjustmentBehavior = 'automatic' | 'scrollableAxes' | 'never' | 'always';
@@ -880,6 +882,16 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * Sets ability to open fullscreen videos on Android devices.
    */
   allowsFullscreenVideo?: boolean;
+
+  /**
+   * Function that is invoked when the `WebView` starts to load a resource.
+   */
+  onResourceLoadStart?: (event: WebViewNavigationEvent | WebViewErrorEvent) => void;
+
+  /**
+   * Function that is invoked when the `WebView` finishes to load a resource.
+   */
+  onResourceLoadFinish?: (event: WebViewNavigationEvent | WebViewErrorEvent) => void;
 }
 
 export interface WebViewSharedProps extends ViewProps {

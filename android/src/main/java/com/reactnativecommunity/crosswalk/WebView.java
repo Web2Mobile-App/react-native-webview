@@ -2,6 +2,8 @@ package com.reactnativecommunity.crosswalk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -13,6 +15,8 @@ import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JsPromptResult;
+import android.webkit.JsResult;
 import android.webkit.PermissionRequest;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
@@ -26,13 +30,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.BaseActivityEventListener;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.UIManagerModule;
+import com.facebook.react.uimanager.events.Event;
+import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
+import com.reactnativecommunity.crosswalk.events.TopResourceLoadFinishedEvent;
+import com.reactnativecommunity.crosswalk.events.TopResourceLoadStartedEvent;
+import com.reactnativecommunity.webview.events.TopLoadingStartEvent;
 
 import org.xwalk.core.CustomViewCallback;
 import org.xwalk.core.XWalkActivityDelegate;
 import org.xwalk.core.XWalkDownloadListener;
+import org.xwalk.core.XWalkJavascriptResult;
 import org.xwalk.core.XWalkNavigationHistory;
 import org.xwalk.core.XWalkPreferences;
 import org.xwalk.core.XWalkResourceClient;
@@ -334,9 +348,58 @@ public class WebView extends FrameLayout {
           webChromeClient.onCloseWindow(webView);
         }
       }
+
+      @Override
+      public boolean onJsAlert(android.webkit.WebView view,
+                               String url,
+                               String message,
+                               JsResult result) {
+        AlertUtils.showAlert(getContext(), url, message, null, result);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJsConfirm(android.webkit.WebView view,
+                                 String url,
+                                 String message,
+                                 JsResult result) {
+        AlertUtils.showConfirm(getContext(), url, message, null, result);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJsPrompt(android.webkit.WebView view,
+                                String url,
+                                String message,
+                                String defaultValue,
+                                JsPromptResult result) {
+        AlertUtils.showPrompt(getContext(), url, message, defaultValue, null, result);
+
+        return true;
+      }
     });
 
     reloadData();
+  }
+
+  private WritableMap createWebViewEvent(String url) {
+    WritableMap event = Arguments.createMap();
+    event.putDouble("target", getId());
+    event.putString("mainDocumentURL", getUrl());
+    event.putString("url", url);
+    event.putString("title", getTitle());
+    event.putBoolean("canGoBack", canGoBack());
+    event.putBoolean("canGoForward", canGoForward());
+    return event;
+  }
+
+  private void dispatchEvent(Event event) {
+    ReactContext reactContext = (ReactContext) getContext();
+    EventDispatcher eventDispatcher =
+      reactContext.getNativeModule(UIManagerModule.class).getEventDispatcher();
+    eventDispatcher.dispatchEvent(event);
   }
 
   private void reloadData() {
@@ -488,6 +551,28 @@ public class WebView extends FrameLayout {
 
         return super.shouldInterceptLoadRequest(view, request);
       }
+
+      @Override
+      public void onLoadStarted(XWalkView view,
+                                String url) {
+        dispatchEvent(
+          new TopResourceLoadStartedEvent(
+            webView.getId(),
+            createWebViewEvent(url)));
+
+        super.onLoadStarted(view, url);
+      }
+
+      @Override
+      public void onLoadFinished(XWalkView view,
+                                 String url) {
+        dispatchEvent(
+          new TopResourceLoadFinishedEvent(
+            webView.getId(),
+            createWebViewEvent(url)));
+
+        super.onLoadFinished(view, url);
+      }
     });
     walkView.setUIClient(new XWalkUIClient(walkView) {
       @Override
@@ -575,6 +660,62 @@ public class WebView extends FrameLayout {
         if (webChromeClient != null) {
           webChromeClient.onCloseWindow(webView);
         }
+      }
+
+      @Override
+      public boolean onJsAlert(XWalkView view,
+                               String url,
+                               String message,
+                               XWalkJavascriptResult result) {
+        AlertUtils.showAlert(getContext(), url, message, result, null);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJsConfirm(XWalkView view,
+                                 String url,
+                                 String message,
+                                 XWalkJavascriptResult result) {
+        AlertUtils.showConfirm(getContext(), url, message, result, null);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJsPrompt(XWalkView view,
+                                String url,
+                                String message,
+                                String defaultValue,
+                                XWalkJavascriptResult result) {
+        AlertUtils.showPrompt(getContext(), url, message, defaultValue, result, null);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJavascriptModalDialog(XWalkView view,
+                                             JavascriptMessageType type,
+                                             String url,
+                                             String message,
+                                             String defaultValue,
+                                             XWalkJavascriptResult result) {
+        switch (type) {
+          case JAVASCRIPT_ALERT: {
+            AlertUtils.showAlert(getContext(), url, message, result, null);
+            break;
+          }
+          case JAVASCRIPT_CONFIRM: {
+            AlertUtils.showConfirm(getContext(), url, message, result, null);
+            break;
+          }
+          case JAVASCRIPT_PROMPT: {
+            AlertUtils.showPrompt(getContext(), url, message, defaultValue, result, null);
+            break;
+          }
+        }
+
+        return true;
       }
     });
 
