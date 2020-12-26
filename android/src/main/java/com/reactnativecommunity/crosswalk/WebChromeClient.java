@@ -11,16 +11,16 @@ import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 
-import org.xwalk.core.XWalkUIClient;
-import org.xwalk.core.XWalkView;
+import com.pakdata.xwalk.refactor.XWalkUIClient;
+import com.pakdata.xwalk.refactor.XWalkView;
 
 public abstract class WebChromeClient {
 
-  public static class CustomViewCallback implements org.xwalk.core.CustomViewCallback {
-    private org.xwalk.core.CustomViewCallback walkCustomViewCallback;
+  public static class CustomViewCallback implements com.pakdata.xwalk.refactor.CustomViewCallback {
+    private com.pakdata.xwalk.refactor.CustomViewCallback walkCustomViewCallback;
     private android.webkit.WebChromeClient.CustomViewCallback webkitCustomViewCallback;
 
-    public CustomViewCallback(org.xwalk.core.CustomViewCallback walkCustomViewCallback) {
+    public CustomViewCallback(com.pakdata.xwalk.refactor.CustomViewCallback walkCustomViewCallback) {
       this.walkCustomViewCallback = walkCustomViewCallback;
     }
 
@@ -79,7 +79,7 @@ public abstract class WebChromeClient {
     return false;
   }
 
-  public boolean onCreateWindowRequested(XWalkView view, XWalkUIClient.InitiateBy initiator, ValueCallback<XWalkView> callback) {
+  public boolean onCreateWindowRequested(XWalkView view, XWalkUIClient.InitiateByInternal initiator, ValueCallback<XWalkView> callback) {
     return false;
   }
 

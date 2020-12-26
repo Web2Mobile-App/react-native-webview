@@ -7,7 +7,7 @@ import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
 import android.widget.EditText;
 
-import org.xwalk.core.XWalkJavascriptResult;
+import com.pakdata.xwalk.refactor.XWalkJavascriptResult;
 
 public class AlertUtils {
 

@@ -6,10 +6,10 @@ import android.webkit.CookieManager;
 
 import androidx.annotation.RequiresApi;
 
-import org.xwalk.core.XWalkCookieManager;
-import org.xwalk.core.XWalkPreferences;
-import org.xwalk.core.XWalkSettings;
-import org.xwalk.core.XWalkView;
+import com.pakdata.xwalk.refactor.XWalkCookieManager;
+import com.pakdata.xwalk.refactor.XWalkPreferences;
+import com.pakdata.xwalk.refactor.XWalkSettings;
+import com.pakdata.xwalk.refactor.XWalkView;
 
 public class WebSettings {
 

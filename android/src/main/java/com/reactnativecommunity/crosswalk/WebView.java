@@ -2,8 +2,6 @@ package com.reactnativecommunity.crosswalk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -39,23 +37,18 @@ import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
+import com.pakdata.xwalk.refactor.CustomViewCallback;
+import com.pakdata.xwalk.refactor.XWalkDownloadListener;
+import com.pakdata.xwalk.refactor.XWalkJavascriptResult;
+import com.pakdata.xwalk.refactor.XWalkNavigationHistory;
+import com.pakdata.xwalk.refactor.XWalkResourceClient;
+import com.pakdata.xwalk.refactor.XWalkSettings;
+import com.pakdata.xwalk.refactor.XWalkUIClient;
+import com.pakdata.xwalk.refactor.XWalkView;
+import com.pakdata.xwalk.refactor.XWalkWebResourceRequest;
+import com.pakdata.xwalk.refactor.XWalkWebResourceResponse;
 import com.reactnativecommunity.crosswalk.events.TopResourceLoadFinishedEvent;
 import com.reactnativecommunity.crosswalk.events.TopResourceLoadStartedEvent;
-import com.reactnativecommunity.webview.events.TopLoadingStartEvent;
-
-import org.xwalk.core.CustomViewCallback;
-import org.xwalk.core.XWalkActivityDelegate;
-import org.xwalk.core.XWalkDownloadListener;
-import org.xwalk.core.XWalkJavascriptResult;
-import org.xwalk.core.XWalkNavigationHistory;
-import org.xwalk.core.XWalkPreferences;
-import org.xwalk.core.XWalkResourceClient;
-import org.xwalk.core.XWalkSettings;
-import org.xwalk.core.XWalkUIClient;
-import org.xwalk.core.XWalkView;
-import org.xwalk.core.XWalkWebResourceRequest;
-import org.xwalk.core.XWalkWebResourceResponse;
-import org.xwalk.core.internal.XWalkPreferencesInternal;
 
 import java.util.Map;
 
@@ -69,7 +62,6 @@ public class WebView extends FrameLayout {
 
   private boolean useCrosswalk = false;
   private android.webkit.WebView webkitView;
-  private XWalkActivityDelegate walkActivityDelegate;
   private XWalkView walkView;
 
   private boolean ready;
@@ -90,7 +82,6 @@ public class WebView extends FrameLayout {
   public WebView(@NonNull ThemedReactContext reactContext) {
     super(reactContext);
 
-    XWalkPreferencesInternal.setValue(XWalkPreferencesInternal.ENABLE_THEME_COLOR, false);
     webSettings = new WebSettings();
   }
 
@@ -103,11 +94,6 @@ public class WebView extends FrameLayout {
       initializeCrosswalk(reactContext);
     } else {
       initializeWebkit(reactContext);
-    }
-
-    if (walkActivityDelegate != null) {
-      walkActivityDelegate.onResume();
-    } else {
       onWebkitReady();
     }
   }
@@ -126,23 +112,18 @@ public class WebView extends FrameLayout {
     updateLayout(right - left, bottom - top);
   }
 
-  private void initializeCrosswalk(@NonNull ThemedReactContext reactContext) {
-    Runnable cancelCommand = new Runnable() {
-      public void run() {
-        WebView.this.onXWalkFailed();
-      }
-    };
-    Runnable completeCommand = new Runnable() {
-      public void run() {
-        WebView.this.onXWalkReady();
-      }
-    };
-    Activity activity = reactContext.getCurrentActivity();
-    walkActivityDelegate
-      = new XWalkActivityDelegate(activity, cancelCommand, completeCommand);
+  private void onCreateWalkView(XWalkView walkView) {
+    this.walkView = walkView;
+    onXWalkReady();
+  }
 
-    walkView = new XWalkView(activity);
-    reactContext.addActivityEventListener(new XWalkActivityEventListener(walkView));
+  private void initializeCrosswalk(@NonNull ThemedReactContext reactContext) {
+    XWalkManager.getInstance().createInstance(reactContext, new XWalkManager.OnCreateListener() {
+      @Override
+      public void onCreate(XWalkView walkView) {
+        onCreateWalkView(walkView);
+      }
+    });
   }
 
   private void initializeWebkit(@NonNull ThemedReactContext reactContext) {
@@ -433,9 +414,6 @@ public class WebView extends FrameLayout {
     contentView.layout(0, 0, width, height);
   }
 
-  private void onXWalkFailed() {
-  }
-
   private void onXWalkReady() {
     if (ready) {
       return;
@@ -452,11 +430,11 @@ public class WebView extends FrameLayout {
     reactViewGroup.addView(walkView, index + 1, layoutParams);
 
     XWalkSettings walkSettings = walkView.getSettings();
-    walkSettings.setLayoutAlgorithm(XWalkSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
+    walkSettings.setLayoutAlgorithm(XWalkSettings.LayoutAlgorithmInternal.TEXT_AUTOSIZING);
     webSettings.updateWalk(walkView, walkSettings);
 
     final WebView webView = this;
-    walkView.setResourceClient(new XWalkResourceClient(walkView) {
+    walkView.setResourceClient(new XWalkResourceClient() {
       @Override
       public boolean shouldOverrideUrlLoading(XWalkView view, String url) {
         if (webViewClient != null) {
@@ -585,7 +563,7 @@ public class WebView extends FrameLayout {
       }
 
       @Override
-      public void onPageLoadStopped(XWalkView view, String url, LoadStatus status) {
+      public void onPageLoadStopped(XWalkView view, String url, LoadStatusInternal status) {
         super.onPageLoadStopped(view, url, status);
 
         if (webViewClient != null) {
@@ -646,7 +624,7 @@ public class WebView extends FrameLayout {
       }
 
       @Override
-      public boolean onCreateWindowRequested(XWalkView view, InitiateBy initiator, ValueCallback<XWalkView> callback) {
+      public boolean onCreateWindowRequested(XWalkView view, InitiateByInternal initiator, ValueCallback<XWalkView> callback) {
         if (webChromeClient != null) {
           return webChromeClient.onCreateWindowRequested(view, initiator, callback);
         }
@@ -695,7 +673,7 @@ public class WebView extends FrameLayout {
 
       @Override
       public boolean onJavascriptModalDialog(XWalkView view,
-                                             JavascriptMessageType type,
+                                             JavascriptMessageTypeInternal type,
                                              String url,
                                              String message,
                                              String defaultValue,
@@ -952,7 +930,7 @@ public class WebView extends FrameLayout {
       return;
     }
     if (walkView != null && walkView.getNavigationHistory() == null) {
-      walkView.getNavigationHistory().navigate(XWalkNavigationHistory.Direction.BACKWARD, 1);
+      walkView.getNavigationHistory().navigate(XWalkNavigationHistory.DirectionInternal.BACKWARD, 1);
     } else if (webkitView != null) {
       webkitView.goBack();
     }
@@ -963,7 +941,7 @@ public class WebView extends FrameLayout {
       return;
     }
     if (walkView != null && walkView.getNavigationHistory() == null) {
-      walkView.getNavigationHistory().navigate(XWalkNavigationHistory.Direction.FORWARD, 1);
+      walkView.getNavigationHistory().navigate(XWalkNavigationHistory.DirectionInternal.FORWARD, 1);
     } else if (webkitView != null) {
       webkitView.goForward();
     }

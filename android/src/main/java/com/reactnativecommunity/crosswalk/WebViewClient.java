@@ -12,9 +12,8 @@ import android.webkit.WebResourceResponse;
 
 import androidx.annotation.RequiresApi;
 
-import org.xwalk.core.XWalkView;
-import org.xwalk.core.XWalkWebResourceRequest;
-import org.xwalk.core.XWalkWebResourceResponse;
+import com.pakdata.xwalk.refactor.XWalkWebResourceRequest;
+import com.pakdata.xwalk.refactor.XWalkWebResourceResponse;
 
 public class WebViewClient {
 
