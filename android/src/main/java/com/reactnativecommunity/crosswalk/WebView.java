@@ -38,6 +38,7 @@ import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
 import com.pakdata.xwalk.refactor.CustomViewCallback;
+import com.pakdata.xwalk.refactor.XWalkClient;
 import com.pakdata.xwalk.refactor.XWalkDownloadListener;
 import com.pakdata.xwalk.refactor.XWalkNavigationHandlerImpl;
 import com.pakdata.xwalk.refactor.XWalkNavigationHistory;
@@ -440,8 +441,9 @@ public class WebView extends FrameLayout {
     walkView.setNavigationHandler(new XWalkNavigationHandlerImpl(getContext()) {
       @Override
       public boolean handleNavigation(NavigationParams params) {
-        if (webViewClient != null) {
-          return webViewClient.shouldOverrideUrlLoading(webView, params.url);
+        if (webViewClient != null
+          && webViewClient.shouldOverrideUrlLoading(webView, params.url)) {
+          return true;
         }
         return super.handleNavigation(params);
       }
@@ -453,6 +455,17 @@ public class WebView extends FrameLayout {
           return webChromeClient.onConsoleMessage(consoleMessage);
         }
         return super.onConsoleMessage(consoleMessage);
+      }
+    });
+    walkView.setXWalkClient(new XWalkClient(walkView) {
+      @Override
+      public void onLoadResource(XWalkView view, String url) {
+        dispatchEvent(
+          new TopResourceLoadStartedEvent(
+            webView.getId(),
+            createWebViewEvent(url)));
+        
+        super.onLoadResource(view, url);
       }
     });
     walkView.setResourceClient(new XWalkResourceClient() {
