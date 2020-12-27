@@ -39,16 +39,19 @@ import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
 import com.pakdata.xwalk.refactor.CustomViewCallback;
 import com.pakdata.xwalk.refactor.XWalkDownloadListener;
-import com.pakdata.xwalk.refactor.XWalkJavascriptResult;
+import com.pakdata.xwalk.refactor.XWalkNavigationHandlerImpl;
 import com.pakdata.xwalk.refactor.XWalkNavigationHistory;
 import com.pakdata.xwalk.refactor.XWalkResourceClient;
 import com.pakdata.xwalk.refactor.XWalkSettings;
 import com.pakdata.xwalk.refactor.XWalkUIClient;
 import com.pakdata.xwalk.refactor.XWalkView;
+import com.pakdata.xwalk.refactor.XWalkWebChromeClient;
 import com.pakdata.xwalk.refactor.XWalkWebResourceRequest;
 import com.pakdata.xwalk.refactor.XWalkWebResourceResponse;
 import com.reactnativecommunity.crosswalk.events.TopResourceLoadFinishedEvent;
 import com.reactnativecommunity.crosswalk.events.TopResourceLoadStartedEvent;
+
+import org.chromium.components.navigation_interception.NavigationParams;
 
 import java.util.Map;
 
@@ -434,6 +437,24 @@ public class WebView extends FrameLayout {
     webSettings.updateWalk(walkView, walkSettings);
 
     final WebView webView = this;
+    walkView.setNavigationHandler(new XWalkNavigationHandlerImpl(getContext()) {
+      @Override
+      public boolean handleNavigation(NavigationParams params) {
+        if (webViewClient != null) {
+          return webViewClient.shouldOverrideUrlLoading(webView, params.url);
+        }
+        return super.handleNavigation(params);
+      }
+    });
+    walkView.setXWalkWebChromeClient(new XWalkWebChromeClient() {
+      @Override
+      public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+        if (webChromeClient != null) {
+          return webChromeClient.onConsoleMessage(consoleMessage);
+        }
+        return super.onConsoleMessage(consoleMessage);
+      }
+    });
     walkView.setResourceClient(new XWalkResourceClient() {
       @Override
       public boolean shouldOverrideUrlLoading(XWalkView view, String url) {
@@ -638,62 +659,6 @@ public class WebView extends FrameLayout {
         if (webChromeClient != null) {
           webChromeClient.onCloseWindow(webView);
         }
-      }
-
-      @Override
-      public boolean onJsAlert(XWalkView view,
-                               String url,
-                               String message,
-                               XWalkJavascriptResult result) {
-        AlertUtils.showAlert(getContext(), url, message, result, null);
-
-        return true;
-      }
-
-      @Override
-      public boolean onJsConfirm(XWalkView view,
-                                 String url,
-                                 String message,
-                                 XWalkJavascriptResult result) {
-        AlertUtils.showConfirm(getContext(), url, message, result, null);
-
-        return true;
-      }
-
-      @Override
-      public boolean onJsPrompt(XWalkView view,
-                                String url,
-                                String message,
-                                String defaultValue,
-                                XWalkJavascriptResult result) {
-        AlertUtils.showPrompt(getContext(), url, message, defaultValue, result, null);
-
-        return true;
-      }
-
-      @Override
-      public boolean onJavascriptModalDialog(XWalkView view,
-                                             JavascriptMessageTypeInternal type,
-                                             String url,
-                                             String message,
-                                             String defaultValue,
-                                             XWalkJavascriptResult result) {
-        switch (type) {
-          case JAVASCRIPT_ALERT: {
-            AlertUtils.showAlert(getContext(), url, message, result, null);
-            break;
-          }
-          case JAVASCRIPT_CONFIRM: {
-            AlertUtils.showConfirm(getContext(), url, message, result, null);
-            break;
-          }
-          case JAVASCRIPT_PROMPT: {
-            AlertUtils.showPrompt(getContext(), url, message, defaultValue, result, null);
-            break;
-          }
-        }
-
-        return true;
       }
     });
 

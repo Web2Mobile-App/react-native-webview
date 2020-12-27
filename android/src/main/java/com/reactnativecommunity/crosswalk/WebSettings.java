@@ -152,7 +152,9 @@ public class WebSettings {
 
   public void setAppCachePath(String appCachePath) {
     this.appCachePath = appCachePath;
-    if (webkitSettings != null) {
+    if (walkSettings != null) {
+      walkSettings.setAppCachePath(appCachePath);
+    } else if (webkitSettings != null) {
       webkitSettings.setAppCachePath(appCachePath);
     }
   }
