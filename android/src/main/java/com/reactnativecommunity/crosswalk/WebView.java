@@ -40,6 +40,7 @@ import com.facebook.react.views.view.ReactViewGroup;
 import com.pakdata.xwalk.refactor.CustomViewCallback;
 import com.pakdata.xwalk.refactor.XWalkClient;
 import com.pakdata.xwalk.refactor.XWalkDownloadListener;
+import com.pakdata.xwalk.refactor.XWalkJavascriptResult;
 import com.pakdata.xwalk.refactor.XWalkNavigationHandlerImpl;
 import com.pakdata.xwalk.refactor.XWalkNavigationHistory;
 import com.pakdata.xwalk.refactor.XWalkResourceClient;
@@ -54,6 +55,7 @@ import com.reactnativecommunity.crosswalk.events.TopResourceLoadStartedEvent;
 
 import org.chromium.components.navigation_interception.NavigationParams;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class WebView extends FrameLayout {
@@ -78,6 +80,8 @@ public class WebView extends FrameLayout {
   private String historyUrl;
   private DownloadListener downloadListener;
   private int progress;
+  private Map<String, Object> javascriptInterfaceLookup;
+  private Map<String, ValueCallback<String>> javascriptLookup;
 
   public static void setWebContentsDebuggingEnabled(boolean enabled) {
     WebSettings.setWebContentsDebuggingEnabled(enabled);
@@ -87,6 +91,8 @@ public class WebView extends FrameLayout {
     super(reactContext);
 
     webSettings = new WebSettings();
+    javascriptInterfaceLookup = new HashMap<>();
+    javascriptLookup = new HashMap<>();
   }
 
   @Override
@@ -365,8 +371,6 @@ public class WebView extends FrameLayout {
         return true;
       }
     });
-
-    reloadData();
   }
 
   private WritableMap createWebViewEvent(String url) {
@@ -397,6 +401,26 @@ public class WebView extends FrameLayout {
     } else {
       loadUrl(this.url);
     }
+  }
+
+  private void addPendingJavascriptInterfaces() {
+    if (!ready || javascriptInterfaceLookup.size() == 0) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : javascriptInterfaceLookup.entrySet()) {
+      addJavascriptInterface(entry.getValue(), entry.getKey());
+    }
+    javascriptInterfaceLookup = new HashMap<>();
+  }
+
+  private void evaluatePendingJavascripts() {
+    if (!ready || javascriptLookup.size() == 0) {
+      return;
+    }
+    for (Map.Entry<String, ValueCallback<String>> entry : javascriptLookup.entrySet()) {
+      evaluateJavascript(entry.getKey(), entry.getValue());
+    }
+    javascriptLookup = new HashMap<>();
   }
 
   private void updateLayout() {
@@ -464,7 +488,7 @@ public class WebView extends FrameLayout {
           new TopResourceLoadStartedEvent(
             webView.getId(),
             createWebViewEvent(url)));
-        
+
         super.onLoadResource(view, url);
       }
     });
@@ -673,6 +697,37 @@ public class WebView extends FrameLayout {
           webChromeClient.onCloseWindow(webView);
         }
       }
+
+      @Override
+      public boolean onJsAlert(XWalkView view,
+                               String url,
+                               String message,
+                               XWalkJavascriptResult result) {
+        AlertUtils.showAlert(view.getContext(), url, message, result, null);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJsConfirm(XWalkView view,
+                                 String url,
+                                 String message,
+                                 XWalkJavascriptResult result) {
+        AlertUtils.showConfirm(view.getContext(), url, message, result, null);
+
+        return true;
+      }
+
+      @Override
+      public boolean onJsPrompt(XWalkView view,
+                                String url,
+                                String message,
+                                String defaultValue,
+                                XWalkJavascriptResult result) {
+        AlertUtils.showPrompt(view.getContext(), url, message, defaultValue, result, null);
+
+        return true;
+      }
     });
 
     walkView.setDownloadListener(new XWalkDownloadListener(getContext()) {
@@ -687,6 +742,8 @@ public class WebView extends FrameLayout {
     onResume();
     requestLayout();
     reloadData();
+    addPendingJavascriptInterfaces();
+    evaluatePendingJavascripts();
   }
 
   private void onWebkitReady() {
@@ -705,6 +762,8 @@ public class WebView extends FrameLayout {
     onResume();
     requestLayout();
     reloadData();
+    addPendingJavascriptInterfaces();
+    evaluatePendingJavascripts();
   }
 
   public WebSettings getSettings() {
@@ -951,6 +1010,7 @@ public class WebView extends FrameLayout {
   public void addJavascriptInterface(Object object,
                                      String name) {
     if (!ready) {
+      javascriptInterfaceLookup.put(name, object);
       return;
     }
     if (walkView != null) {
@@ -962,6 +1022,9 @@ public class WebView extends FrameLayout {
 
   public void removeJavascriptInterface(String name) {
     if (!ready) {
+      if (javascriptInterfaceLookup.containsKey(name)) {
+        javascriptInterfaceLookup.remove(name);
+      }
       return;
     }
     if (walkView != null) {
@@ -974,6 +1037,7 @@ public class WebView extends FrameLayout {
   public void evaluateJavascript(String script,
                                  ValueCallback<String> resultCallback) {
     if (!ready) {
+      javascriptLookup.put(script, resultCallback);
       return;
     }
     if (walkView != null) {
