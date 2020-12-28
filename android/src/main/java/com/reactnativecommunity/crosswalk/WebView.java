@@ -482,7 +482,7 @@ public class WebView extends FrameLayout {
       }
     });
     walkView.setXWalkClient(new XWalkClient(walkView) {
-      @Override
+      /*@Override
       public void onLoadResource(XWalkView view, String url) {
         dispatchEvent(
           new TopResourceLoadStartedEvent(
@@ -490,7 +490,7 @@ public class WebView extends FrameLayout {
             createWebViewEvent(url)));
 
         super.onLoadResource(view, url);
-      }
+      }*/
     });
     walkView.setResourceClient(new XWalkResourceClient() {
       @Override
@@ -588,7 +588,7 @@ public class WebView extends FrameLayout {
         return super.shouldInterceptLoadRequest(view, request);
       }
 
-      @Override
+      /*@Override
       public void onLoadStarted(XWalkView view,
                                 String url) {
         dispatchEvent(
@@ -608,7 +608,7 @@ public class WebView extends FrameLayout {
             createWebViewEvent(url)));
 
         super.onLoadFinished(view, url);
-      }
+      }*/
     });
     walkView.setUIClient(new XWalkUIClient(walkView) {
       @Override
