@@ -892,6 +892,21 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * Function that is invoked when the `WebView` finishes to load a resource.
    */
   onResourceLoadFinish?: (event: WebViewNavigationEvent | WebViewErrorEvent) => void;
+
+  /**
+   * Boolean value that determines whether crosswalk lib is used
+   * in the `WebView`. The default value is `false`.
+   *
+  */
+  useCrosswalk?: boolean;
+
+  /**
+   * Boolean value that determines whether a pull to refresh gesture is
+   * available in the `WebView`. The default value is `false`.
+   * Only if useCrosswalk is true
+   *
+  */
+  pullToRefreshEnabled?: boolean;
 }
 
 export interface WebViewSharedProps extends ViewProps {

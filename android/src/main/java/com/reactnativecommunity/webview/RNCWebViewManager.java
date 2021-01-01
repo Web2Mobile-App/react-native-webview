@@ -1518,4 +1518,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public void setUseCrosswalk(WebView webView, boolean useCrosswalk) {
     webView.setUseCrosswalk(useCrosswalk);
   }
+
+  @ReactProp(name = "pullToRefreshEnabled")
+  public void setPullToRefreshEnabled(WebView webView, boolean pullToRefreshEnabled) {
+    webView.setPullToRefreshEnabled(pullToRefreshEnabled);
+  }
 }

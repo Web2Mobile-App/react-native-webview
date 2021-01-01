@@ -66,6 +66,7 @@ public class WebView extends FrameLayout {
   private WebViewClient webViewClient;
   private WebChromeClient webChromeClient;
 
+  private boolean pullToRefreshEnabled = false;
   private boolean useCrosswalk = false;
   private android.webkit.WebView webkitView;
   private XWalkView walkView;
@@ -448,6 +449,8 @@ public class WebView extends FrameLayout {
     }
     ready = true;
 
+    walkView.enableSwipeRefresh(pullToRefreshEnabled);
+
     ViewGroup.LayoutParams layoutParams
       = new ViewGroup.LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT,
@@ -780,6 +783,10 @@ public class WebView extends FrameLayout {
 
   public void setWebChromeClient(WebChromeClient client) {
     this.webChromeClient = client;
+  }
+
+  public void setPullToRefreshEnabled(boolean pullToRefreshEnabled) {
+    this.pullToRefreshEnabled = pullToRefreshEnabled;
   }
 
   public void setUseCrosswalk(boolean useCrosswalk) {
