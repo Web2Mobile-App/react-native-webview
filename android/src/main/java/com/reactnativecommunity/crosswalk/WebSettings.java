@@ -83,6 +83,15 @@ public class WebSettings {
     this.walkCookieManager = new XWalkCookieManager();
 
     reload();
+
+    // update user agent
+    try {
+      walkSettings.setUserAgentMobile(true);
+      String userAgent = getUserAgent(walkView.getContext());
+      userAgent = userAgent.replace("; wv", "");
+      walkSettings.setUserAgentString(userAgent);
+    } catch (Exception ignored) {
+    }
   }
 
   public void setBuiltInZoomControls(boolean enabled) {
@@ -344,5 +353,17 @@ public class WebSettings {
     setSupportMultipleWindows(supportMultipleWindows);
     setDatabaseEnabled(databaseEnabled);
     setDatabasePath(databasePath);
+  }
+
+  private String getUserAgent(Context context) {
+    try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        return android.webkit.WebSettings.getDefaultUserAgent(context);
+      } else {
+        return System.getProperty("http.agent");
+      }
+    } catch (RuntimeException e) {
+      return System.getProperty("http.agent");
+    }
   }
 }
