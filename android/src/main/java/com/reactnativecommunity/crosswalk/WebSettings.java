@@ -82,16 +82,8 @@ public class WebSettings {
     this.walkSettings = walkSettings;
     this.walkCookieManager = new XWalkCookieManager();
 
+    walkSettings.setUserAgentMobile(true);
     reload();
-
-    // update user agent
-    try {
-      walkSettings.setUserAgentMobile(true);
-      String userAgent = getUserAgent(walkView.getContext());
-      userAgent = userAgent.replace("; wv", "");
-      walkSettings.setUserAgentString(userAgent);
-    } catch (Exception ignored) {
-    }
   }
 
   public void setBuiltInZoomControls(boolean enabled) {
