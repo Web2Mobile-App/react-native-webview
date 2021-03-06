@@ -1192,17 +1192,14 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && mVideoView != null && mVideoView.getSystemUiVisibility() != FULLSCREEN_SYSTEM_UI_VISIBILITY) {
         mVideoView.setSystemUiVisibility(FULLSCREEN_SYSTEM_UI_VISIBILITY);
       }
-      ((WebView) mWebView).onResume();
     }
 
     @Override
     public void onHostPause() {
-      ((WebView) mWebView).onPause();
     }
 
     @Override
     public void onHostDestroy() {
-      ((WebView) mWebView).onDestroy();
     }
 
     protected ViewGroup getRootView() {
@@ -1269,12 +1266,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     @Override
     public void onHostResume() {
-      // do nothing
+      super.onResume();
     }
 
     @Override
     public void onHostPause() {
-      // do nothing
+      super.onPause();
     }
 
     @Override

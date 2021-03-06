@@ -2,8 +2,10 @@ package com.reactnativecommunity.crosswalk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
@@ -833,6 +835,13 @@ public class WebView extends FrameLayout {
     } else if (webkitView != null) {
       webkitView.resumeTimers();
     }
+
+    AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      manager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+    } else {
+      manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+    }
   }
 
   public void onPause() {
@@ -845,14 +854,12 @@ public class WebView extends FrameLayout {
     } else if (webkitView != null) {
       webkitView.pauseTimers();
     }
-  }
 
-  public void onDestroy() {
-    if (!ready) {
-      return;
-    }
-    if (walkView != null) {
-      walkView.onDestroy();
+    AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      manager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+    } else {
+      manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
     }
   }
 
