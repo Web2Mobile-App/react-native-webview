@@ -315,6 +315,8 @@ export interface IOSNativeWebViewProps extends CommonNativeWebViewProps {
   allowsBackForwardNavigationGestures?: boolean;
   allowsInlineMediaPlayback?: boolean;
   allowsLinkPreview?: boolean;
+  allowFileAccessFromFileURLs?: boolean;
+  allowUniversalAccessFromFileURLs?: boolean;
   automaticallyAdjustContentInsets?: boolean;
   autoManageStatusBarEnabled?: boolean;
   bounces?: boolean;
@@ -336,6 +338,8 @@ export interface IOSNativeWebViewProps extends CommonNativeWebViewProps {
 
 export interface MacOSNativeWebViewProps extends CommonNativeWebViewProps {
   allowingReadAccessToURL?: string;
+  allowFileAccessFromFileURLs?: boolean;
+  allowUniversalAccessFromFileURLs?: boolean;
   allowsBackForwardNavigationGestures?: boolean;
   allowsInlineMediaPlayback?: boolean;
   allowsLinkPreview?: boolean;
@@ -403,6 +407,14 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * @platform ios
    */
   automaticallyAdjustContentInsets?: boolean;
+
+  /**
+   * Controls whether to adjust the scroll indicator inset for web views that are
+   * placed behind a navigation bar, tab bar, or toolbar. The default value
+   * is `false`. (iOS 13+)
+   * @platform ios
+   */
+  automaticallyAdjustsScrollIndicatorInsets?: boolean;
 
   /**
    * This property specifies how the safe area insets are used to modify the
@@ -541,6 +553,22 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * @platform ios
    */
   allowingReadAccessToURL?: string;
+
+  /**
+   * Boolean that sets whether JavaScript running in the context of a file
+   * scheme URL should be allowed to access content from other file scheme URLs.
+   * Including accessing content from other file scheme URLs
+   * @platform ios
+   */
+  allowFileAccessFromFileURLs?: boolean;
+
+  /**
+   * Boolean that sets whether JavaScript running in the context of a file
+   * scheme URL should be allowed to access content from any origin.
+   * Including accessing content from other file scheme URLs
+   * @platform ios
+   */
+  allowUniversalAccessFromFileURLs?: boolean;
 
   /**
    * Function that is invoked when the WebKit WebView content process gets terminated.
@@ -719,6 +747,22 @@ export interface MacOSWebViewProps extends WebViewSharedProps {
    * @platform macos
    */
   allowingReadAccessToURL?: string;
+
+  /**
+   * Boolean that sets whether JavaScript running in the context of a file
+   * scheme URL should be allowed to access content from other file scheme URLs.
+   * Including accessing content from other file scheme URLs
+   * @platform macos
+   */
+  allowFileAccessFromFileURLs?: boolean;
+
+  /**
+   * Boolean that sets whether JavaScript running in the context of a file
+   * scheme URL should be allowed to access content from any origin.
+   * Including accessing content from other file scheme URLs
+   * @platform macos
+   */
+  allowUniversalAccessFromFileURLs?: boolean;
 
   /**
    * Function that is invoked when the WebKit WebView content process gets terminated.
