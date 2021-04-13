@@ -16,4 +16,11 @@ Pod::Spec.new do |s|
   s.source_files  = "apple/**/*.{h,m}"
 
   s.dependency 'React-Core'
+
+  if defined?($RNWeb2MobileAsStaticFramework)
+    Pod::UI.puts "#{s.name}: Using overridden static_framework value of '#{$RNWeb2MobileAsStaticFramework}'"
+    s.static_framework = $RNWeb2MobileAsStaticFramework
+  else
+    s.static_framework = false
+  end
 end
