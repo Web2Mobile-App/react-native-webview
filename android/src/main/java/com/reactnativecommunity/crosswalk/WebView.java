@@ -41,6 +41,7 @@ import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
 import com.pakdata.xwalk.refactor.CustomViewCallback;
 import com.pakdata.xwalk.refactor.XWalkClient;
+import com.pakdata.xwalk.refactor.XWalkContentView;
 import com.pakdata.xwalk.refactor.XWalkDownloadListener;
 import com.pakdata.xwalk.refactor.XWalkJavascriptResult;
 import com.pakdata.xwalk.refactor.XWalkNavigationHandlerImpl;
@@ -51,9 +52,8 @@ import com.pakdata.xwalk.refactor.XWalkUIClient;
 import com.pakdata.xwalk.refactor.XWalkView;
 import com.pakdata.xwalk.refactor.XWalkWebChromeClient;
 import com.pakdata.xwalk.refactor.XWalkWebResourceRequest;
+import com.pakdata.xwalk.refactor.XWalkWebResourceRequestHandler;
 import com.pakdata.xwalk.refactor.XWalkWebResourceResponse;
-import com.reactnativecommunity.crosswalk.events.TopResourceLoadFinishedEvent;
-import com.reactnativecommunity.crosswalk.events.TopResourceLoadStartedEvent;
 
 import org.chromium.components.navigation_interception.NavigationParams;
 

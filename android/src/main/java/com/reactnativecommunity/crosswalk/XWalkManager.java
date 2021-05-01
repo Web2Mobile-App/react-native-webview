@@ -3,6 +3,7 @@ package com.reactnativecommunity.crosswalk;
 import android.app.Application;
 import android.content.Context;
 
+import com.pakdata.xwalk.refactor.MyWalkView;
 import com.pakdata.xwalk.refactor.XWalkView;
 
 import org.chromium.base.ApplicationStatus;
@@ -89,7 +90,7 @@ public class XWalkManager implements XWalkInitializer.XWalkInitListener {
 
   private void doCreateInstance(Context context,
                                 OnCreateListener listener) {
-    XWalkView walkView = new XWalkView(context);
+    XWalkView walkView = new MyWalkView(context);
     listener.onCreate(walkView);
   }
 }
