@@ -26,8 +26,13 @@ public class MyWalkContent extends XWalkContent {
       LoadUrlParams params = new LoadUrlParams(url);
       if (additionalHttpHeaders != null) {
         String referer = "Referer";
-        if (additionalHttpHeaders.containsKey(referer)) {
-          String value = additionalHttpHeaders.remove(referer);
+        String lowerReferer = referer.toLowerCase();
+        if (additionalHttpHeaders.containsKey(referer)
+          || additionalHttpHeaders.containsKey(lowerReferer)) {
+          String value
+            = additionalHttpHeaders.containsKey(referer)
+            ? additionalHttpHeaders.remove(referer)
+            : additionalHttpHeaders.remove(lowerReferer);
           Referrer referrer = new Referrer(value, 0);
           params.setReferrer(referrer);
         }
