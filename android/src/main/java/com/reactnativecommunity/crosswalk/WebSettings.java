@@ -52,6 +52,8 @@ public class WebSettings {
   private boolean savePassword;
   private int mixedContentMode;
   private boolean geolocationEnabled;
+  private boolean cookiesEnabled;
+  private boolean cacheEnabled;
   private boolean supportMultipleWindows;
   private boolean databaseEnabled;
   private String databasePath;
@@ -277,6 +279,7 @@ public class WebSettings {
   }
 
   public void setCookiesEnabled(boolean enabled) {
+    this.cookiesEnabled = enabled;
     if (walkCookieManager != null) {
       walkCookieManager.setAcceptCookie(enabled);
       walkCookieManager.setAcceptFileSchemeCookies(enabled);
@@ -342,6 +345,7 @@ public class WebSettings {
     setSavePassword(savePassword);
     setMixedContentMode(mixedContentMode);
     setGeolocationEnabled(geolocationEnabled);
+    setCookiesEnabled(cookiesEnabled);
     setSupportMultipleWindows(supportMultipleWindows);
     setDatabaseEnabled(databaseEnabled);
     setDatabasePath(databasePath);
