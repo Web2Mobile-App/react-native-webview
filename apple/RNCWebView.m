@@ -1251,6 +1251,12 @@ static NSDictionary* customCertificatesForHost;
   }
 }
 
+- (void)setMessagingEnabledForMainFrameOnly:(BOOL)messagingEnabledForMainFrameOnly
+{
+    _messagingEnabledForMainFrameOnly = messagingEnabledForMainFrameOnly;
+    [self setMessagingEnabled:_messagingEnabled];
+}
+
 - (void)setInjectedJavaScriptForMainFrameOnly:(BOOL)mainFrameOnly {
   _injectedJavaScriptForMainFrameOnly = mainFrameOnly;
   [self setInjectedJavaScript:_injectedJavaScript];
@@ -1279,8 +1285,7 @@ static NSDictionary* customCertificatesForHost;
    injectionTime:WKUserScriptInjectionTimeAtDocumentStart
    /* TODO: For a separate (minor) PR: use logic like this (as react-native-wkwebview does) so that messaging can be used in all frames if desired.
     *       I am keeping it as YES for consistency with previous behaviour. */
-   // forMainFrameOnly:_messagingEnabledForMainFrameOnly
-   forMainFrameOnly:YES
+   forMainFrameOnly:_messagingEnabledForMainFrameOnly
    ] :
   nil;
 

@@ -444,6 +444,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     ((RNCWebView) view).setInjectedJavaScriptBeforeContentLoadedForMainFrameOnly(enabled);
   }
 
+  @ReactProp(name = "messagingEnabledForMainFrameOnly")
+  public void setMessagingEnabledForMainFrameOnly(WebView view, boolean enabled) {
+    ((RNCWebView) view).setMessagingEnabledForMainFrameOnly(enabled);
+  }
+
   @ReactProp(name = "messagingEnabled")
   public void setMessagingEnabled(WebView view, boolean enabled) {
     ((RNCWebView) view).setMessagingEnabled(enabled);
@@ -1249,6 +1254,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      * android.webkit.WebChromeClient fundamentally does not support JS injection into frames other
      * than the main frame, so these two properties are mostly here just for parity with iOS & macOS.
      */
+    protected boolean messagingEnabledForMainFrameOnly = true;
     protected boolean injectedJavaScriptForMainFrameOnly = true;
     protected boolean injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true;
 
@@ -1369,6 +1375,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       if (reactContext != null) {
         mCatalystInstance = reactContext.getCatalystInstance();
       }
+    }
+
+    public void setMessagingEnabledForMainFrameOnly(boolean messagingEnabledForMainFrameOnly) {
+      this.messagingEnabledForMainFrameOnly = messagingEnabledForMainFrameOnly;
     }
 
     @SuppressLint("AddJavascriptInterface")

@@ -261,6 +261,7 @@ export interface CommonNativeWebViewProps extends ViewProps {
   javaScriptCanOpenWindowsAutomatically?: boolean;
   mediaPlaybackRequiresUserAction?: boolean;
   messagingEnabled: boolean;
+  messagingEnabledForMainFrameOnly?: boolean;
   onScroll?: (event: WebViewScrollEvent) => void;
   onLoadingError: (event: WebViewErrorEvent) => void;
   onLoadingFinish: (event: WebViewNavigationEvent) => void;
@@ -576,6 +577,13 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * @platform ios
    */
   onContentProcessDidTerminate?: (event: WebViewTerminatedEvent) => void;
+
+  /**
+   * If `true` (default), loads javascript for messaging only into the main frame.
+   * If `false`, loads it into all frames (e.g. iframes).
+   * @platform ios
+  */
+   messagingEnabledForMainFrameOnly?: boolean;
 
   /**
    * If `true` (default), loads the `injectedJavaScript` only into the main frame.
@@ -1070,6 +1078,12 @@ export interface WebViewSharedProps extends ViewProps {
    * once the webview is initialized but before the view loads any content.
    */
   injectedJavaScriptBeforeContentLoaded?: string;
+
+  /**
+   * If `true` (default; mandatory for Android), loads javascript for messaging only into the main frame.
+   * If `false` (only supported on iOS and macOS), loads it into all frames (e.g. iframes).
+   */
+   messagingEnabledForMainFrameOnly?: boolean;
 
   /**
    * If `true` (default; mandatory for Android), loads the `injectedJavaScript` only into the main frame.

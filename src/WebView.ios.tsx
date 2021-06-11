@@ -290,6 +290,7 @@ class WebView extends React.Component<IOSWebViewProps, State> {
       originWhitelist,
       renderError,
       renderLoading,
+      messagingEnabledForMainFrameOnly = true,
       injectedJavaScriptForMainFrameOnly = true,
       injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true,
       style,
@@ -349,6 +350,7 @@ class WebView extends React.Component<IOSWebViewProps, State> {
         onContentProcessDidTerminate={this.onContentProcessDidTerminate}
         injectedJavaScript={this.props.injectedJavaScript}
         injectedJavaScriptBeforeContentLoaded={this.props.injectedJavaScriptBeforeContentLoaded}
+        messagingEnabledForMainFrameOnly={messagingEnabledForMainFrameOnly}
         injectedJavaScriptForMainFrameOnly={injectedJavaScriptForMainFrameOnly}
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly={injectedJavaScriptBeforeContentLoadedForMainFrameOnly}
         ref={this.webViewRef}
