@@ -1357,7 +1357,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
 
     public void setInjectedJavaScriptForMainFrameOnly(boolean enabled) {
-      injectedJavaScriptForMainFrameOnly = enabled;
+      super.setInjectedJavaScriptForMainFrameOnly(enabled);
     }
 
     public void setInjectedJavaScriptBeforeContentLoadedForMainFrameOnly(boolean enabled) {
