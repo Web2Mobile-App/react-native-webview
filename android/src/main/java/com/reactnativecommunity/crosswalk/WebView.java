@@ -1,9 +1,7 @@
 package com.reactnativecommunity.crosswalk;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -31,7 +29,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -55,6 +52,12 @@ import com.pakdata.xwalk.refactor.XWalkWebResourceResponse;
 
 import org.chromium.components.navigation_interception.NavigationParams;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,6 +86,10 @@ public class WebView extends FrameLayout {
   private int progress;
   private Map<String, Object> javascriptInterfaceLookup;
   private Map<String, ValueCallback<String>> javascriptLookup;
+
+  protected @Nullable
+  String injectedJS;
+  protected boolean injectedJavaScriptForMainFrameOnly = true;
 
   public static void setWebContentsDebuggingEnabled(boolean enabled) {
     WebSettings.setWebContentsDebuggingEnabled(enabled);
@@ -583,11 +590,110 @@ public class WebView extends FrameLayout {
       }
 
       @Override
-      public XWalkWebResourceResponse shouldInterceptLoadRequest(XWalkView view, XWalkWebResourceRequest request) {
+      public XWalkWebResourceResponse shouldInterceptLoadRequest(XWalkView view,
+                                                                 XWalkWebResourceRequest request) {
+        if (!request.isForMainFrame()
+          && !injectedJavaScriptForMainFrameOnly
+          && injectedJS != null
+          && !injectedJS.isEmpty()) {
+          Map<String, String> requestHeaders = request.getRequestHeaders();
+          String requestMethod = request.getMethod();
+          // check whether or not the request is to load a html page
+          if (requestMethod.equals("GET")
+            && requestHeaders.containsKey("Accept")
+            && requestHeaders.get("Accept").contains("text/html")) {
+            // load content of an iframe and inject javascript into it
+            String requestUrl = request.getUrl().toString();
+            HttpURLConnection urlConnection = null;
+            InputStreamReader inputStreamReader = null;
+            BufferedReader bufferedReader = null;
+            try {
+              URL requestURL = new URL(requestUrl);
+              urlConnection
+                = (HttpURLConnection) requestURL.openConnection();
+              urlConnection.setRequestMethod(requestMethod);
+              for (Map.Entry<String, String> entry : request.getRequestHeaders().entrySet()) {
+                urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
+              }
+              inputStreamReader
+                = new InputStreamReader(urlConnection.getInputStream());
+              bufferedReader
+                = new BufferedReader(inputStreamReader);
+
+              StringBuilder responseStringBuilder = new StringBuilder("");
+              String line;
+              while ((line = bufferedReader.readLine()) != null) {
+                responseStringBuilder.append(line);
+                responseStringBuilder.append("\n");
+              }
+              String responseString = responseStringBuilder.toString();
+              int index = responseString.lastIndexOf("</body>");
+              if (index > 0) {
+                responseString
+                  = String.format(
+                  "%s\n<script type=\"text/javascript\">\n%s\n</script>\n%s",
+                  responseString.substring(0, index),
+                  injectedJS,
+                  responseString.substring(index)
+                );
+              }
+
+              Map<String, String> responseHeaders = new HashMap<>();
+              for (String key : urlConnection.getHeaderFields().keySet()) {
+                responseHeaders.put(key, urlConnection.getHeaderField(key));
+              }
+              String contentType = urlConnection.getContentType();
+              String[] components
+                = contentType != null
+                ? contentType.split(";")
+                : null;
+              if (components.length > 0) {
+                contentType = components[0].trim();
+              }
+              String encoding = urlConnection.getContentEncoding();
+              if (encoding == null && components.length > 1) {
+                components = components[1].split("=");
+                if (components.length > 1) {
+                  encoding = components[1].trim();
+                }
+              }
+              InputStream responseInputStream
+                = encoding == null
+                ? new ByteArrayInputStream(responseString.getBytes())
+                : new ByteArrayInputStream(responseString.getBytes(encoding));
+              int responseCode = urlConnection.getResponseCode();
+              String responseMessage = urlConnection.getResponseMessage();
+
+              return createXWalkWebResourceResponse(
+                contentType,
+                encoding,
+                responseInputStream,
+                responseCode,
+                responseMessage,
+                responseHeaders
+              );
+            } catch (Exception ex) {
+            } finally {
+              try {
+                if (bufferedReader != null) {
+                  bufferedReader.close();
+                }
+                if (inputStreamReader != null) {
+                  inputStreamReader.close();
+                }
+              } catch (Exception ex) {
+              }
+              if (urlConnection != null) {
+                urlConnection.disconnect();
+              }
+            }
+          }
+        }
+
+        // original logic
         if (webViewClient != null) {
           return webViewClient.shouldInterceptLoadRequest(webView, request);
         }
-
         return super.shouldInterceptLoadRequest(view, request);
       }
 
@@ -613,139 +719,150 @@ public class WebView extends FrameLayout {
         super.onLoadFinished(view, url);
       }*/
     });
-    walkView.setUIClient(new XWalkUIClient(walkView) {
-      @Override
-      public void onPageLoadStarted(XWalkView view, String url) {
-        super.onPageLoadStarted(view, url);
+    walkView.setUIClient(new
 
-        if (webViewClient != null) {
-          webViewClient.onPageStarted(webView, url, null);
-        }
-      }
+                           XWalkUIClient(walkView) {
+                             @Override
+                             public void onPageLoadStarted(XWalkView view, String url) {
+                               super.onPageLoadStarted(view, url);
 
-      @Override
-      public void onPageLoadStopped(XWalkView view, String url, LoadStatusInternal status) {
-        super.onPageLoadStopped(view, url, status);
+                               if (webViewClient != null) {
+                                 webViewClient.onPageStarted(webView, url, null);
+                               }
+                             }
 
-        if (webViewClient != null) {
-          webViewClient.onPageFinished(webView, url);
-        }
-      }
+                             @Override
+                             public void onPageLoadStopped(XWalkView view, String url, LoadStatusInternal status) {
+                               super.onPageLoadStopped(view, url, status);
 
-      @Override
-      public void onShowCustomView(View view, CustomViewCallback callback) {
-        super.onShowCustomView(view, callback);
+                               if (webViewClient != null) {
+                                 webViewClient.onPageFinished(webView, url);
+                               }
+                             }
 
-        if (webChromeClient != null) {
-          webChromeClient.onShowCustomView(view, new WebChromeClient.CustomViewCallback(callback));
-        }
-      }
+                             @Override
+                             public void onShowCustomView(View view, CustomViewCallback callback) {
+                               super.onShowCustomView(view, callback);
 
-      @Override
-      public void onHideCustomView() {
-        super.onHideCustomView();
+                               if (webChromeClient != null) {
+                                 webChromeClient.onShowCustomView(view, new WebChromeClient.CustomViewCallback(callback));
+                               }
+                             }
 
-        if (webChromeClient != null) {
-          webChromeClient.onHideCustomView();
-        }
-      }
+                             @Override
+                             public void onHideCustomView() {
+                               super.onHideCustomView();
 
-      @Override
-      public boolean onConsoleMessage(XWalkView view, String message, int lineNumber, String sourceId, ConsoleMessageType messageType) {
-        if (webChromeClient != null) {
-          ConsoleMessage.MessageLevel messageLevel = ConsoleMessage.MessageLevel.DEBUG;
-          switch (messageType) {
-            case DEBUG: {
-              messageLevel = ConsoleMessage.MessageLevel.DEBUG;
-              break;
-            }
-            case ERROR: {
-              messageLevel = ConsoleMessage.MessageLevel.ERROR;
-              break;
-            }
-            case LOG: {
-              messageLevel = ConsoleMessage.MessageLevel.LOG;
-              break;
-            }
-            case INFO: {
-              messageLevel = ConsoleMessage.MessageLevel.TIP;
-              break;
-            }
-            case WARNING: {
-              messageLevel = ConsoleMessage.MessageLevel.WARNING;
-              break;
-            }
-          }
-          ConsoleMessage consoleMessage
-            = new ConsoleMessage(message, sourceId, lineNumber, messageLevel);
-          return webChromeClient.onConsoleMessage(consoleMessage);
-        }
+                               if (webChromeClient != null) {
+                                 webChromeClient.onHideCustomView();
+                               }
+                             }
 
-        return super.onConsoleMessage(view, message, lineNumber, sourceId, messageType);
-      }
+                             @Override
+                             public boolean onConsoleMessage(XWalkView view, String message, int lineNumber, String
+                               sourceId, ConsoleMessageType messageType) {
+                               if (webChromeClient != null) {
+                                 ConsoleMessage.MessageLevel messageLevel = ConsoleMessage.MessageLevel.DEBUG;
+                                 switch (messageType) {
+                                   case DEBUG: {
+                                     messageLevel = ConsoleMessage.MessageLevel.DEBUG;
+                                     break;
+                                   }
+                                   case ERROR: {
+                                     messageLevel = ConsoleMessage.MessageLevel.ERROR;
+                                     break;
+                                   }
+                                   case LOG: {
+                                     messageLevel = ConsoleMessage.MessageLevel.LOG;
+                                     break;
+                                   }
+                                   case INFO: {
+                                     messageLevel = ConsoleMessage.MessageLevel.TIP;
+                                     break;
+                                   }
+                                   case WARNING: {
+                                     messageLevel = ConsoleMessage.MessageLevel.WARNING;
+                                     break;
+                                   }
+                                 }
+                                 ConsoleMessage consoleMessage
+                                   = new ConsoleMessage(message, sourceId, lineNumber, messageLevel);
+                                 return webChromeClient.onConsoleMessage(consoleMessage);
+                               }
 
-      @Override
-      public boolean onCreateWindowRequested(XWalkView view, InitiateByInternal initiator, ValueCallback<XWalkView> callback) {
-        if (webChromeClient != null) {
-          return webChromeClient.onCreateWindowRequested(view, initiator, callback);
-        }
-        return super.onCreateWindowRequested(view, initiator, callback);
-      }
+                               return super.onConsoleMessage(view, message, lineNumber, sourceId, messageType);
+                             }
 
-      @Override
-      public void onJavascriptCloseWindow(XWalkView view) {
-        super.onJavascriptCloseWindow(view);
+                             @Override
+                             public boolean onCreateWindowRequested(XWalkView view, InitiateByInternal
+                               initiator, ValueCallback<XWalkView> callback) {
+                               if (webChromeClient != null) {
+                                 return webChromeClient.onCreateWindowRequested(view, initiator, callback);
+                               }
+                               return super.onCreateWindowRequested(view, initiator, callback);
+                             }
 
-        if (webChromeClient != null) {
-          webChromeClient.onCloseWindow(webView);
-        }
-      }
+                             @Override
+                             public void onJavascriptCloseWindow(XWalkView view) {
+                               super.onJavascriptCloseWindow(view);
 
-      @Override
-      public boolean onJsAlert(XWalkView view,
-                               String url,
-                               String message,
-                               XWalkJavascriptResult result) {
-        AlertUtils.showAlert(view.getContext(), url, message, result, null);
+                               if (webChromeClient != null) {
+                                 webChromeClient.onCloseWindow(webView);
+                               }
+                             }
 
-        return true;
-      }
+                             @Override
+                             public boolean onJsAlert(XWalkView view,
+                                                      String url,
+                                                      String message,
+                                                      XWalkJavascriptResult result) {
+                               AlertUtils.showAlert(view.getContext(), url, message, result, null);
 
-      @Override
-      public boolean onJsConfirm(XWalkView view,
-                                 String url,
-                                 String message,
-                                 XWalkJavascriptResult result) {
-        AlertUtils.showConfirm(view.getContext(), url, message, result, null);
+                               return true;
+                             }
 
-        return true;
-      }
+                             @Override
+                             public boolean onJsConfirm(XWalkView view,
+                                                        String url,
+                                                        String message,
+                                                        XWalkJavascriptResult result) {
+                               AlertUtils.showConfirm(view.getContext(), url, message, result, null);
 
-      @Override
-      public boolean onJsPrompt(XWalkView view,
-                                String url,
-                                String message,
-                                String defaultValue,
-                                XWalkJavascriptResult result) {
-        AlertUtils.showPrompt(view.getContext(), url, message, defaultValue, result, null);
+                               return true;
+                             }
 
-        return true;
-      }
-    });
+                             @Override
+                             public boolean onJsPrompt(XWalkView view,
+                                                       String url,
+                                                       String message,
+                                                       String defaultValue,
+                                                       XWalkJavascriptResult result) {
+                               AlertUtils.showPrompt(view.getContext(), url, message, defaultValue, result, null);
 
-    walkView.setDownloadListener(new XWalkDownloadListener(getContext()) {
-      @Override
-      public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-        if (downloadListener != null) {
-          downloadListener.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength);
-        }
-      }
-    });
+                               return true;
+                             }
+                           });
+
+    walkView.setDownloadListener(new
+
+                                   XWalkDownloadListener(getContext()) {
+                                     @Override
+                                     public void onDownloadStart(String url, String userAgent, String contentDisposition, String
+                                       mimetype, long contentLength) {
+                                       if (downloadListener != null) {
+                                         downloadListener.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength);
+                                       }
+                                     }
+                                   });
 
     onResume();
+
     requestLayout();
+
     reloadData();
+
     addPendingJavascriptInterfaces();
+
     evaluatePendingJavascripts();
   }
 
@@ -791,6 +908,14 @@ public class WebView extends FrameLayout {
 
   public void setUseCrosswalk(boolean useCrosswalk) {
     this.useCrosswalk = useCrosswalk;
+  }
+
+  public void setInjectedJavaScript(@Nullable String js) {
+    this.injectedJS = js;
+  }
+
+  public void setInjectedJavaScriptForMainFrameOnly(boolean injectedJavaScriptForMainFrameOnly) {
+    this.injectedJavaScriptForMainFrameOnly = injectedJavaScriptForMainFrameOnly;
   }
 
   public void setDownloadListener(final DownloadListener listener) {
@@ -1067,29 +1192,6 @@ public class WebView extends FrameLayout {
     }
     if (walkView != null) {
       walkView.onDestroy();
-    }
-  }
-
-  private static class XWalkActivityEventListener extends BaseActivityEventListener {
-    private final XWalkView walkView;
-
-    public XWalkActivityEventListener(XWalkView walkView) {
-      this.walkView = walkView;
-    }
-
-    @Override
-    public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-      walkView.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-      walkView.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    public void onNewIntent(Intent intent) {
-      walkView.onNewIntent(intent);
     }
   }
 }

@@ -1245,8 +1245,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    * to call {@link WebView#destroy} on activity destroy event and also to clear the client
    */
   protected static class RNCWebView extends WebView implements LifecycleEventListener {
-    protected @Nullable
-    String injectedJS;
+    // protected @Nullable
+    // String injectedJS;
     protected @Nullable
     String injectedJSBeforeContentLoaded;
 
@@ -1255,7 +1255,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      * than the main frame, so these two properties are mostly here just for parity with iOS & macOS.
      */
     protected boolean messagingEnabledForMainFrameOnly = true;
-    protected boolean injectedJavaScriptForMainFrameOnly = true;
     protected boolean injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true;
 
     protected boolean messagingEnabled = false;
@@ -1350,7 +1349,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
 
     public void setInjectedJavaScript(@Nullable String js) {
-      injectedJS = js;
+      super.setInjectedJavaScript(js);
     }
 
     public void setInjectedJavaScriptBeforeContentLoaded(@Nullable String js) {
