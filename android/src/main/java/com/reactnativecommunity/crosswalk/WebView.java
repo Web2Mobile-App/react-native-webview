@@ -22,6 +22,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebStorage;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -36,6 +37,7 @@ import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
+import com.jakewharton.processphoenix.ProcessPhoenix;
 import com.pakdata.xwalk.refactor.CustomViewCallback;
 import com.pakdata.xwalk.refactor.XWalkClient;
 import com.pakdata.xwalk.refactor.XWalkDownloadListener;
@@ -54,6 +56,7 @@ import org.chromium.components.navigation_interception.NavigationParams;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -1046,6 +1049,34 @@ public class WebView extends FrameLayout {
     }
   }
 
+  public void reset() {
+    if (!ready) {
+      return;
+    }
+    webSettings.clearCookies();
+    if (walkView != null) {
+      File xwalkcoreDir = getContext().getDir("xwalkcore", Context.MODE_PRIVATE);
+      deleteFile(xwalkcoreDir);
+      walkView.clearCache(true);
+      walkView.clearFormData();
+      walkView.getNavigationHistory().clear();
+      ProcessPhoenix.triggerRebirth(getContext());
+    } else if (webkitView != null) {
+      WebStorage.getInstance().deleteAllData();
+      webkitView.clearCache(true);
+      webkitView.clearFormData();
+      webkitView.clearHistory();
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        webkitView.evaluateJavascript("localStorage.clear();sessionStorage.clear();", new ValueCallback<String>() {
+          @Override
+          public void onReceiveValue(String value) {
+            webkitView.reload();
+          }
+        });
+      }
+    }
+  }
+
   public void loadDataWithBaseURL(String baseUrl,
                                   String data,
                                   String mimeType,
@@ -1193,5 +1224,17 @@ public class WebView extends FrameLayout {
     if (walkView != null) {
       walkView.onDestroy();
     }
+  }
+
+  private void deleteFile(File file) {
+    if (file == null || !file.exists()) {
+      return;
+    }
+    if (file.isDirectory()) {
+      for (File child : file.listFiles()) {
+        deleteFile(child);
+      }
+    }
+    file.delete();
   }
 }

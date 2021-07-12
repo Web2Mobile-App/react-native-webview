@@ -94,5 +94,6 @@
 - (void)addPullToRefreshControl;
 - (void)pullToRefresh:(UIRefreshControl *_Nonnull)refreshControl;
 #endif
+- (void)reset;
 
 @end

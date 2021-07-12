@@ -53,7 +53,6 @@ public class WebSettings {
   private int mixedContentMode;
   private boolean geolocationEnabled;
   private boolean cookiesEnabled;
-  private boolean cacheEnabled;
   private boolean supportMultipleWindows;
   private boolean databaseEnabled;
   private String databasePath;
@@ -312,6 +311,17 @@ public class WebSettings {
     this.databasePath = databasePath;
     if (webkitSettings != null) {
       webkitSettings.setDatabasePath(databasePath);
+    }
+  }
+
+  public void clearCookies() {
+    if (walkCookieManager != null) {
+      walkCookieManager.removeAllCookie();
+      walkCookieManager.flushCookieStore();
+    }
+    else if (webkitSettings != null) {
+      CookieManager.getInstance().removeAllCookies(null);
+      CookieManager.getInstance().flush();
     }
   }
 

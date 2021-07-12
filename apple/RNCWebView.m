@@ -1430,6 +1430,23 @@ static NSDictionary* customCertificatesForHost;
   return request;
 }
 
+- (void)reset {
+    NSSet *websiteDataTypes
+    = [NSSet setWithObjects:WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache, WKWebsiteDataTypeOfflineWebApplicationCache, WKWebsiteDataTypeCookies, WKWebsiteDataTypeSessionStorage, WKWebsiteDataTypeLocalStorage, WKWebsiteDataTypeWebSQLDatabases, WKWebsiteDataTypeIndexedDBDatabases, nil];
+    NSDate *fromDate = [NSDate dateWithTimeIntervalSince1970:0];
+    __weak WKWebView *weakWebView = _webView;
+    [[WKWebsiteDataStore defaultDataStore]
+     removeDataOfTypes:websiteDataTypes
+     modifiedSince:fromDate
+     completionHandler:^{
+        RCTLogInfo(@"reset done");
+        __strong WKWebView *strongWebView= weakWebView;
+        if (strongWebView) {
+            [strongWebView reload];
+        }
+    }];
+}
+
 @end
 
 @implementation RNCWeakScriptMessageDelegate

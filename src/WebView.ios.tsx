@@ -166,6 +166,17 @@ class WebView extends React.Component<IOSWebViewProps, State> {
   };
 
   /**
+   * Reset data
+   */
+   reset = () => {
+    UIManager.dispatchViewManagerCommand(
+      this.getWebViewHandle(),
+      this.getCommands().reset,
+      undefined,
+    );
+  };
+
+  /**
    * We return an event with a bunch of fields including:
    *  url, title, loading, canGoBack, canGoForward
    */
