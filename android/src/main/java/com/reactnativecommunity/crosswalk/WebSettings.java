@@ -5,6 +5,8 @@ import android.os.Build;
 import android.webkit.CookieManager;
 
 import androidx.annotation.RequiresApi;
+import androidx.webkit.WebSettingsCompat;
+import androidx.webkit.WebViewFeature;
 
 import com.pakdata.xwalk.refactor.XWalkCookieManager;
 import com.pakdata.xwalk.refactor.XWalkPreferences;
@@ -56,6 +58,7 @@ public class WebSettings {
   private boolean supportMultipleWindows;
   private boolean databaseEnabled;
   private String databasePath;
+  private boolean forceDarkOn;
 
   public WebSettings() {
   }
@@ -320,8 +323,34 @@ public class WebSettings {
       walkCookieManager.flushCookieStore();
     }
     else if (webkitSettings != null) {
-      CookieManager.getInstance().removeAllCookies(null);
-      CookieManager.getInstance().flush();
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        CookieManager.getInstance().removeAllCookies(null);
+        CookieManager.getInstance().flush();
+      }
+    }
+  }
+
+  public void setForceDarkOn(boolean forceDarkOn) {
+    this.forceDarkOn = forceDarkOn;
+
+    if (webkitSettings != null) {
+      // Only Android 10+ support dark mode
+      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+        // Switch WebView dark mode
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+          int forceDarkMode = forceDarkOn ? WebSettingsCompat.FORCE_DARK_ON : WebSettingsCompat.FORCE_DARK_OFF;
+          WebSettingsCompat.setForceDark(webkitSettings, forceDarkMode);
+        }
+
+        // Set how WebView content should be darkened.
+        // PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING:  checks for the "color-scheme" <meta> tag.
+        // If present, it uses media queries. If absent, it applies user-agent (automatic)
+        // More information about Force Dark Strategy can be found here:
+        // https://developer.android.com/reference/androidx/webkit/WebSettingsCompat#setForceDarkStrategy(android.webkit.WebSettings)
+        if (forceDarkOn && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+          WebSettingsCompat.setForceDarkStrategy(webkitSettings, WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING);
+        }
+      }
     }
   }
 
@@ -359,6 +388,7 @@ public class WebSettings {
     setSupportMultipleWindows(supportMultipleWindows);
     setDatabaseEnabled(databaseEnabled);
     setDatabasePath(databasePath);
+    setForceDarkOn(forceDarkOn);
   }
 
   private String getUserAgent(Context context) {

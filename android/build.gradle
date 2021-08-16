@@ -38,7 +38,6 @@ apply plugin: 'kotlin-android'
 
 android {
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
-  buildToolsVersion getExtOrDefault('buildToolsVersion')
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault('minSdkVersion')
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
@@ -135,11 +134,13 @@ repositories {
 }
 
 def kotlin_version = getExtOrDefault('kotlinVersion')
+def webkit_version = getExtOrDefault('webkitVersion')
 
 dependencies {
   compileOnly fileTree(dir: 'libs', include: ['*.aar'])
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation "androidx.webkit:webkit:$webkit_version"
   implementation 'com.jakewharton:process-phoenix:2.1.1'
 }
