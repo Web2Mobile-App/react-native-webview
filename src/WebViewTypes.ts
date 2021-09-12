@@ -307,8 +307,6 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   nestedScrollEnabled?: boolean;
   readonly urlPrefixesForDefaultIntent?: string[];
   forceDarkOn?: boolean;
-  onResourceLoadStarted: (event: WebViewNavigationEvent) => void;
-  onResourceLoadFinished: (event: WebViewNavigationEvent) => void;
 }
 
 export declare type ContentInsetAdjustmentBehavior = 'automatic' | 'scrollableAxes' | 'never' | 'always';
@@ -967,30 +965,11 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
   allowsFullscreenVideo?: boolean;
 
   /**
-<<<<<<< HEAD
-   * Function that is invoked when the `WebView` starts to load a resource.
-   */
-  onResourceLoadStart?: (event: WebViewNavigationEvent | WebViewErrorEvent) => void;
-
-  /**
-   * Function that is invoked when the `WebView` finishes to load a resource.
-   */
-  onResourceLoadFinish?: (event: WebViewNavigationEvent | WebViewErrorEvent) => void;
-
-  /**
-   * Boolean value that determines whether crosswalk lib is used
+   * Boolean value that determines whether gecko is used
    * in the `WebView`. The default value is `false`.
    *
   */
-  useCrosswalk?: boolean;
-
-  /**
-   * Boolean value that determines whether a pull to refresh gesture is
-   * available in the `WebView`. The default value is `false`.
-   * Only if useCrosswalk is true
-   *
-  */
-  pullToRefreshEnabled?: boolean;
+  useGecko?: boolean;
 
   /**
    * Configuring Dark Theme

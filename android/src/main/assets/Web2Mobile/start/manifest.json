@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "name": "web2mobile_document_start",
+  "version": "1.0.0",
+  "description": "",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{11111111-1111-1111-1111-111111111111}"
+    }
+  },
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "js": [
+        "index.js"
+      ]
+    }
+  ],
+  "permissions": [
+    "nativeMessaging",
+    "geckoViewAddons",
+    "nativeMessagingFromContent"
+  ]
+}
