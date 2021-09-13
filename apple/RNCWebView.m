@@ -852,7 +852,7 @@ static NSDictionary* customCertificatesForHost;
 {
 #if !TARGET_OS_OSX
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:message preferredStyle:UIAlertControllerStyleAlert];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+  [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK button") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
     completionHandler();
   }]];
   [[self topViewController] presentViewController:alert animated:YES completion:NULL];
@@ -871,10 +871,10 @@ static NSDictionary* customCertificatesForHost;
 - (void)webView:(WKWebView *)webView runJavaScriptConfirmPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(BOOL))completionHandler{
 #if !TARGET_OS_OSX
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:message preferredStyle:UIAlertControllerStyleAlert];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+  [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK button") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
     completionHandler(YES);
   }]];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+  [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"Cancel button") style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
     completionHandler(NO);
   }]];
   [[self topViewController] presentViewController:alert animated:YES completion:NULL];
@@ -899,11 +899,11 @@ static NSDictionary* customCertificatesForHost;
   [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
     textField.text = defaultText;
   }];
-  UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+  UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", @"OK button") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
     completionHandler([[alert.textFields lastObject] text]);
   }];
   [alert addAction:okAction];
-  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"Cancel button") style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
     completionHandler(nil);
   }];
   [alert addAction:cancelAction];
@@ -1259,6 +1259,12 @@ static NSDictionary* customCertificatesForHost;
   }
 }
 
+- (void)setMessagingEnabledForMainFrameOnly:(BOOL)messagingEnabledForMainFrameOnly
+{
+    _messagingEnabledForMainFrameOnly = messagingEnabledForMainFrameOnly;
+    [self setMessagingEnabled:_messagingEnabled];
+}
+
 - (void)setInjectedJavaScriptForMainFrameOnly:(BOOL)mainFrameOnly {
   _injectedJavaScriptForMainFrameOnly = mainFrameOnly;
   [self setInjectedJavaScript:_injectedJavaScript];
@@ -1287,8 +1293,7 @@ static NSDictionary* customCertificatesForHost;
    injectionTime:WKUserScriptInjectionTimeAtDocumentStart
    /* TODO: For a separate (minor) PR: use logic like this (as react-native-wkwebview does) so that messaging can be used in all frames if desired.
     *       I am keeping it as YES for consistency with previous behaviour. */
-   // forMainFrameOnly:_messagingEnabledForMainFrameOnly
-   forMainFrameOnly:YES
+   forMainFrameOnly:_messagingEnabledForMainFrameOnly
    ] :
   nil;
 
@@ -1427,6 +1432,23 @@ static NSDictionary* customCertificatesForHost;
     }
   }
   return request;
+}
+
+- (void)reset {
+    NSSet *websiteDataTypes
+    = [NSSet setWithObjects:WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache, WKWebsiteDataTypeOfflineWebApplicationCache, WKWebsiteDataTypeCookies, WKWebsiteDataTypeSessionStorage, WKWebsiteDataTypeLocalStorage, WKWebsiteDataTypeWebSQLDatabases, WKWebsiteDataTypeIndexedDBDatabases, nil];
+    NSDate *fromDate = [NSDate dateWithTimeIntervalSince1970:0];
+    __weak WKWebView *weakWebView = _webView;
+    [[WKWebsiteDataStore defaultDataStore]
+     removeDataOfTypes:websiteDataTypes
+     modifiedSince:fromDate
+     completionHandler:^{
+        RCTLogInfo(@"reset done");
+        __strong WKWebView *strongWebView= weakWebView;
+        if (strongWebView) {
+            [strongWebView reload];
+        }
+    }];
 }
 
 @end

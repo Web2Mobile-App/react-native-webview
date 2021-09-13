@@ -38,6 +38,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
+import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
@@ -88,7 +89,12 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -136,6 +142,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public static final int COMMAND_INJECT_JAVASCRIPT = 6;
   public static final int COMMAND_LOAD_URL = 7;
   public static final int COMMAND_FOCUS = 8;
+  public static final int COMMAND_RESET = 9;
 
   // android commands
   public static final int COMMAND_CLEAR_FORM_DATA = 1000;
@@ -464,6 +471,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     ((RNCWebView) view).setInjectedJavaScriptBeforeContentLoadedForMainFrameOnly(enabled);
   }
 
+  @ReactProp(name = "messagingEnabledForMainFrameOnly")
+  public void setMessagingEnabledForMainFrameOnly(WebView view, boolean enabled) {
+    ((RNCWebView) view).setMessagingEnabledForMainFrameOnly(enabled);
+  }
+
   @ReactProp(name = "messagingEnabled")
   public void setMessagingEnabled(WebView view, boolean enabled) {
     ((RNCWebView) view).setMessagingEnabled(enabled);
@@ -664,6 +676,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       .put("injectJavaScript", COMMAND_INJECT_JAVASCRIPT)
       .put("loadUrl", COMMAND_LOAD_URL)
       .put("requestFocus", COMMAND_FOCUS)
+      .put("reset", COMMAND_RESET)
       .put("clearFormData", COMMAND_CLEAR_FORM_DATA)
       .put("clearCache", COMMAND_CLEAR_CACHE)
       .put("clearHistory", COMMAND_CLEAR_HISTORY)
@@ -718,6 +731,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         break;
       case COMMAND_FOCUS:
         root.requestFocus();
+        break;
+      case COMMAND_RESET:
+        ((RNCWebView)root).reset();
         break;
       case COMMAND_CLEAR_FORM_DATA:
         root.clearFormData();
@@ -1088,6 +1104,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Nullable
+    @Override
+    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+      if (!(view instanceof RNCWebView)) {
+        return super.shouldInterceptRequest(view, request);
+      }
+
+      RNCWebView webView = (RNCWebView) view;
+      if (!request.isForMainFrame()
+        && !webView.isInjectedJavaScriptForMainFrameOnly()
+        && webView.getInjectedJS() != null
+        && !webView.getInjectedJS().isEmpty()) {
+        Map<String, String> requestHeaders = request.getRequestHeaders();
+        String requestMethod = request.getMethod();
+        // check whether or not the request is to load a html page
+        if (requestMethod.equals("GET")
+          && requestHeaders.containsKey("Accept")
+          && requestHeaders.get("Accept").contains("text/html")) {
+          // load content of an iframe and inject javascript into it
+          String requestUrl = request.getUrl().toString();
+          HttpURLConnection urlConnection = null;
+          InputStreamReader inputStreamReader = null;
+          BufferedReader bufferedReader = null;
+          try {
+            URL requestURL = new URL(requestUrl);
+            urlConnection
+              = (HttpURLConnection) requestURL.openConnection();
+            urlConnection.setRequestMethod(requestMethod);
+            for (Map.Entry<String, String> entry : request.getRequestHeaders().entrySet()) {
+              urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+            inputStreamReader
+              = new InputStreamReader(urlConnection.getInputStream());
+            bufferedReader
+              = new BufferedReader(inputStreamReader);
+
+            StringBuilder responseStringBuilder = new StringBuilder("");
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+              responseStringBuilder.append(line);
+              responseStringBuilder.append("\n");
+            }
+            String responseString = responseStringBuilder.toString();
+            int index = responseString.lastIndexOf("</body>");
+            if (index > 0) {
+              responseString
+                = String.format(
+                "%s\n<script type=\"text/javascript\">\n%s\n</script>\n%s",
+                responseString.substring(0, index),
+                webView.getInjectedJS(),
+                responseString.substring(index)
+              );
+            }
+
+            Map<String, String> responseHeaders = new HashMap<>();
+            for (String key : urlConnection.getHeaderFields().keySet()) {
+              responseHeaders.put(key, urlConnection.getHeaderField(key));
+            }
+            String contentType = urlConnection.getContentType();
+            String[] components
+              = contentType != null
+              ? contentType.split(";")
+              : null;
+            if (components.length > 0) {
+              contentType = components[0].trim();
+            }
+            String encoding = urlConnection.getContentEncoding();
+            if (encoding == null && components.length > 1) {
+              components = components[1].split("=");
+              if (components.length > 1) {
+                encoding = components[1].trim();
+              }
+            }
+            InputStream responseInputStream
+              = encoding == null
+              ? new ByteArrayInputStream(responseString.getBytes())
+              : new ByteArrayInputStream(responseString.getBytes(encoding));
+            int responseCode = urlConnection.getResponseCode();
+            String responseMessage = urlConnection.getResponseMessage();
+
+            return new WebResourceResponse(
+              contentType,
+              encoding,
+              responseCode,
+              responseMessage,
+              responseHeaders,
+              responseInputStream
+            );
+          } catch (Exception ignore) {
+          } finally {
+            try {
+              if (bufferedReader != null) {
+                bufferedReader.close();
+              }
+              if (inputStreamReader != null) {
+                inputStreamReader.close();
+              }
+            } catch (Exception ignore) {
+            }
+            if (urlConnection != null) {
+              urlConnection.disconnect();
+            }
+          }
+        }
+      }
+
+      return super.shouldInterceptRequest(view, request);
+    }
+
     protected void emitFinishEvent(WebView webView, String url) {
       ((RNCWebView) webView).dispatchEvent(
         webView,
@@ -1434,6 +1560,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     protected boolean injectedJavaScriptForMainFrameOnly = true;
     protected boolean injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true;
 
+    protected boolean messagingEnabledForMainFrameOnly = true;
     protected boolean messagingEnabled = false;
     protected @Nullable
     String messagingModuleName;
@@ -1564,6 +1691,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       if (reactContext != null) {
         mCatalystInstance = reactContext.getCatalystInstance();
       }
+    }
+
+    public void setMessagingEnabledForMainFrameOnly(boolean messagingEnabledForMainFrameOnly) {
+      this.messagingEnabledForMainFrameOnly = messagingEnabledForMainFrameOnly;
     }
 
     @SuppressLint("AddJavascriptInterface")
@@ -1733,6 +1864,30 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
       public boolean isWaitingForCommandLoadUrl() {
         return waitingForCommandLoadUrl;
+      }
+    }
+
+    public boolean isInjectedJavaScriptForMainFrameOnly() {
+      return injectedJavaScriptForMainFrameOnly;
+    }
+
+    @Nullable
+    public String getInjectedJS() {
+      return injectedJS;
+    }
+
+    public void reset() {
+      WebStorage.getInstance().deleteAllData();
+      clearCache(true);
+      clearFormData();
+      clearHistory();
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        evaluateJavascript("localStorage.clear();sessionStorage.clear();", new ValueCallback<String>() {
+          @Override
+          public void onReceiveValue(String value) {
+            reload();
+          }
+        });
       }
     }
   }

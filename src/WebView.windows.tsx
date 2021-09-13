@@ -113,6 +113,14 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
     );
   };
 
+  reset = () => {
+    UIManager.dispatchViewManagerCommand(
+      this.getWebViewHandle(),
+      UIManager.getViewManagerConfig('RCTWebView').Commands.reset,
+      undefined,
+    );
+  }
+
   getInjectableJSMessage = (message: string ) => {
     return `(function() {window.dispatchEvent(new MessageEvent('message', {data: ${JSON.stringify(
       message
