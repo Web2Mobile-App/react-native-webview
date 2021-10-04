@@ -251,6 +251,18 @@ export type OnShouldStartLoadWithRequest = (
   event: ShouldStartLoadRequest,
 ) => boolean;
 
+export interface BasicAuthCredential {
+  /**
+   * A username used for basic authentication.
+   */
+  username: string;
+
+  /**
+   * A password used for basic authentication.
+   */
+  password: string;
+}
+
 export interface CommonNativeWebViewProps extends ViewProps {
   cacheEnabled?: boolean;
   incognito?: boolean;
@@ -280,6 +292,7 @@ export interface CommonNativeWebViewProps extends ViewProps {
    * Append to the existing user-agent. Overridden if `userAgent` is set.
    */
   applicationNameForUserAgent?: string;
+  basicAuthCredential?: BasicAuthCredential;
 }
 
 export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
@@ -519,6 +532,13 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * @platform ios
    */
   sharedCookiesEnabled?: boolean;
+
+  /**
+   * When set to true the hardware silent switch is ignored.
+   * The default value is `false`.
+   * @platform ios
+   */
+  ignoreSilentHardwareSwitch?: boolean;
 
   /**
    * Set true if StatusBar should be light when user watch video fullscreen.
@@ -1177,4 +1197,9 @@ export interface WebViewSharedProps extends ViewProps {
    * Append to the existing user-agent. Overridden if `userAgent` is set.
    */
   applicationNameForUserAgent?: string;
+
+  /**
+   * An object that specifies the credentials of a user to be used for basic authentication.
+   */
+  basicAuthCredential?: BasicAuthCredential;
 }
