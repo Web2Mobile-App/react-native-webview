@@ -1636,12 +1636,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     @Override
     public void onHostResume() {
-      // do nothing
+      onResume();
+      resumeTimers();
+      setFocusable(true);
+      setFocusableInTouchMode(true);
+      requestFocus();
     }
 
     @Override
     public void onHostPause() {
-      // do nothing
+      onPause();
+      pauseTimers();
+      setFocusable(false);
+      setFocusableInTouchMode(false);
+      clearFocus();
     }
 
     @Override
