@@ -1196,11 +1196,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
               = contentType != null
               ? contentType.split(";")
               : null;
-            if (components.length > 0) {
+            if (components != null && components.length > 0) {
               contentType = components[0].trim();
             }
             String encoding = urlConnection.getContentEncoding();
-            if (encoding == null && components.length > 1) {
+            if (encoding == null && components != null && components.length > 1) {
               components = components[1].split("=");
               if (components.length > 1) {
                 encoding = components[1].trim();
