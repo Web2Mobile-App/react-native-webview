@@ -658,6 +658,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
   }
 
+  @ReactProp(name = "injectedJavaScriptExcludedUrls")
+  public void setInjectedJavaScriptExcludedUrls(
+    WebView view,
+    @Nullable ReadableArray injectedJavaScriptExcludedUrls) {
+    List<String> urls = new ArrayList<>();
+    if (injectedJavaScriptExcludedUrls != null) {
+      for (int i = 0; i < injectedJavaScriptExcludedUrls.size(); i++) {
+        urls.add(injectedJavaScriptExcludedUrls.getString(i));
+      }
+    }
+    ((RNCWebView) view).setInjectedJavaScriptExcludedUrls(urls);
+  }
+
   @Override
   protected void addEventEmitters(ThemedReactContext reactContext, WebView view) {
     // Do not register default touch emitter and let WebView implementation handle touches
@@ -1147,12 +1160,14 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         && !webView.getInjectedJS().isEmpty()) {
         Map<String, String> requestHeaders = request.getRequestHeaders();
         String requestMethod = request.getMethod();
+        String requestUrl = request.getUrl().toString();
         // check whether or not the request is to load a html page
         if (requestMethod.equals("GET")
           && requestHeaders.containsKey("Accept")
-          && requestHeaders.get("Accept").contains("text/html")) {
+          && requestHeaders.get("Accept").contains("text/html")
+          && (webView.getInjectedJavaScriptExcludedUrls() == null
+          || !webView.getInjectedJavaScriptExcludedUrls().contains(requestUrl))) {
           // load content of an iframe and inject javascript into it
-          String requestUrl = request.getUrl().toString();
           HttpURLConnection urlConnection = null;
           InputStreamReader inputStreamReader = null;
           BufferedReader bufferedReader = null;
@@ -1199,12 +1214,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
             if (components != null && components.length > 0) {
               contentType = components[0].trim();
             }
+            if (contentType != null) {
+              contentType = contentType.replace("\"", "");
+            }
             String encoding = urlConnection.getContentEncoding();
             if (encoding == null && components != null && components.length > 1) {
               components = components[1].split("=");
               if (components.length > 1) {
                 encoding = components[1].trim();
               }
+            }
+            if (encoding != null) {
+              encoding = encoding.replace("\"", "");
             }
             InputStream responseInputStream
               = encoding == null
@@ -1602,6 +1623,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     protected boolean nestedScrollEnabled = false;
     protected ProgressChangedFilter progressChangedFilter;
 
+    protected List<String> injectedJavaScriptExcludedUrls;
+
     /**
      * WebView must be created with an context of the current activity
      * <p>
@@ -1912,6 +1935,14 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     @Nullable
     public String getInjectedJS() {
       return injectedJS;
+    }
+
+    public List<String> getInjectedJavaScriptExcludedUrls() {
+      return injectedJavaScriptExcludedUrls;
+    }
+
+    public void setInjectedJavaScriptExcludedUrls(List<String> injectedJavaScriptExcludedUrls) {
+      this.injectedJavaScriptExcludedUrls = injectedJavaScriptExcludedUrls;
     }
 
     public void reset() {

@@ -332,6 +332,7 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   nestedScrollEnabled?: boolean;
   readonly urlPrefixesForDefaultIntent?: string[];
   forceDarkOn?: boolean;
+  injectedJavaScriptExcludedUrls?: string[];
 }
 
 export declare type ContentInsetAdjustmentBehavior = 'automatic' | 'scrollableAxes' | 'never' | 'always';
@@ -1048,6 +1049,13 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * @platform android
    */
   nestedScrollEnabled?: boolean;
+
+  /**
+   * Used on Android only, controls whether injectedJavaScript should not be loaded in web page of
+   * the given list of URL
+   * @platform android
+   */
+  injectedJavaScriptExcludedUrls?: string[];
 }
 
 export interface WebViewSharedProps extends ViewProps {
