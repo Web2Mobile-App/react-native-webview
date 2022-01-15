@@ -332,6 +332,7 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   nestedScrollEnabled?: boolean;
   readonly urlPrefixesForDefaultIntent?: string[];
   forceDarkOn?: boolean;
+  minimumFontSize?: number;
   injectedJavaScriptExcludedUrls?: string[];
 }
 
@@ -1064,6 +1065,14 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * @platform android
    */
   nestedScrollEnabled?: boolean;
+  
+  /**
+   * Sets the minimum font size.
+   * A non-negative integer between 1 and 72. Any number outside the specified range will be pinned.
+   * Default is 8.
+   * @platform android
+   */
+  minimumFontSize?: number;
 
   /**
    * Used on Android only, controls whether injectedJavaScript should not be loaded in web page of

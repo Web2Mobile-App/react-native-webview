@@ -658,6 +658,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
   }
 
+  @ReactProp(name = "minimumFontSize")
+  public void setMinimumFontSize(WebView view, int fontSize) {
+    view.getSettings().setMinimumFontSize(fontSize);
+  }
+
   @ReactProp(name = "injectedJavaScriptExcludedUrls")
   public void setInjectedJavaScriptExcludedUrls(
     WebView view,
