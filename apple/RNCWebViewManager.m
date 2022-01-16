@@ -117,6 +117,8 @@ RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(enableApplePay, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(menuItems, NSArray);
 RCT_EXPORT_VIEW_PROPERTY(onCustomMenuSelection, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(blockedUrls, NSArray);
+RCT_EXPORT_VIEW_PROPERTY(blockedDuration, NSInteger)
 
 RCT_EXPORT_METHOD(postMessage:(nonnull NSNumber *)reactTag message:(NSString *)message)
 {

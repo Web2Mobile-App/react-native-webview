@@ -101,11 +101,14 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Manages instances of {@link WebView}
@@ -676,6 +679,26 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     ((RNCWebView) view).setInjectedJavaScriptExcludedUrls(urls);
   }
 
+  @ReactProp(name = "blockedUrls")
+  public void setBlockedUrls(
+    WebView view,
+    @Nullable ReadableArray blockedUrls) {
+    List<Pattern> patterns = new ArrayList<>();
+    if (blockedUrls != null) {
+      for (int i = 0; i < blockedUrls.size(); i++) {
+        patterns.add(Pattern.compile(blockedUrls.getString(i)));
+      }
+    }
+    ((RNCWebView) view).setBlockedUrls(patterns);
+  }
+
+  @ReactProp(name = "blockedDuration")
+  public void setBlockedDuration(
+    WebView view,
+    int blockedDuration) {
+    ((RNCWebView) view).setBlockedDuration(blockedDuration * 1000L);
+  }
+
   @Override
   protected void addEventEmitters(ThemedReactContext reactContext, WebView view) {
     // Do not register default touch emitter and let WebView implementation handle touches
@@ -1164,13 +1187,23 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       }
 
       RNCWebView webView = (RNCWebView) view;
+      String requestUrl = request.getUrl().toString();
+      if (webView.shouldBlockUrl(requestUrl)) {
+        return new WebResourceResponse(
+          "",
+          "",
+          500,
+          "Internal Server Error",
+          null,
+          null
+        );
+      }
       if (!request.isForMainFrame()
         && !webView.isInjectedJavaScriptForMainFrameOnly()
         && webView.getInjectedJS() != null
         && !webView.getInjectedJS().isEmpty()) {
         Map<String, String> requestHeaders = request.getRequestHeaders();
         String requestMethod = request.getMethod();
-        String requestUrl = request.getUrl().toString();
         // check whether or not the request is to load a html page
         if (requestMethod.equals("GET")
           && requestHeaders.containsKey("Accept")
@@ -1634,6 +1667,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     protected ProgressChangedFilter progressChangedFilter;
 
     protected List<String> injectedJavaScriptExcludedUrls;
+    protected Date startDate;
+    protected long blockedDuration;
+    protected List<Pattern> blockedUrls;
 
     /**
      * WebView must be created with an context of the current activity
@@ -1645,6 +1681,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       super(reactContext);
       this.createCatalystInstance();
       progressChangedFilter = new ProgressChangedFilter();
+      startDate = new Date();
+      blockedDuration = 60_000L;
     }
 
     public void setIgnoreErrFailedForThisURL(String url) {
@@ -1953,6 +1991,29 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     public void setInjectedJavaScriptExcludedUrls(List<String> injectedJavaScriptExcludedUrls) {
       this.injectedJavaScriptExcludedUrls = injectedJavaScriptExcludedUrls;
+    }
+
+    public void setBlockedUrls(List<Pattern> blockedUrls) {
+      this.blockedUrls = blockedUrls;
+    }
+
+    public void setBlockedDuration(long blockedDuration) {
+      this.blockedDuration = blockedDuration;
+    }
+
+    public boolean shouldBlockUrl(String url) {
+      if (blockedUrls == null
+        || blockedUrls.size() == 0
+        || new Date().getTime() - startDate.getTime() >= blockedDuration) {
+        return false;
+      }
+      for (Pattern blockedUrl: blockedUrls) {
+        Matcher matcher = blockedUrl.matcher(url);
+        if (matcher.matches()) {
+          return true;
+        }
+      }
+      return false;
     }
 
     public void reset() {

@@ -88,6 +88,8 @@ NSString *const CUSTOM_SELECTOR = @"_CUSTOM_SELECTOR_";
 @property (nonatomic, strong) WKUserScript *postMessageScript;
 @property (nonatomic, strong) WKUserScript *atStartScript;
 @property (nonatomic, strong) WKUserScript *atEndScript;
+@property (nonatomic, strong) WKContentRuleList *blockedUrlsContentRuleList;
+@property (nonatomic, copy) dispatch_block_t blockedUrlsRemoval;
 @end
 
 @implementation RNCWebView
@@ -433,6 +435,8 @@ NSString *const CUSTOM_SELECTOR = @"_CUSTOM_SELECTOR_";
       _webView.scrollView.automaticallyAdjustsScrollIndicatorInsets = _savedAutomaticallyAdjustsScrollIndicatorInsets;
     }
 #endif
+
+    [self setupBlockedUrlsContentRuleList];
 
     [self addSubview:_webView];
     [self setHideKeyboardAccessoryView: _savedHideKeyboardAccessoryView];
@@ -1607,6 +1611,81 @@ NSString *const CUSTOM_SELECTOR = @"_CUSTOM_SELECTOR_";
             [strongWebView reload];
         }
     }];
+}
+
+NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsContentRuleList";
+
+- (void)setBlockedUrls:(NSArray<NSString *> *)blockedUrls
+{
+  if (![_blockedUrls isEqualToArray:blockedUrls]) {
+    _blockedUrls = [blockedUrls copy];
+    [self setupBlockedUrlsContentRuleList];
+  }
+}
+
+- (void)removeBlockedUrlsContentRuleList
+{
+  if (self.blockedUrlsContentRuleList) {
+    [self.webView.configuration.userContentController removeContentRuleList:self.blockedUrlsContentRuleList];
+    self.blockedUrlsContentRuleList = nil;
+  }
+}
+
+- (void)setupBlockedUrlsContentRuleList
+{
+  if (!self.webView) {
+    return;
+  }
+
+  [self removeBlockedUrlsContentRuleList];
+  if (self.blockedUrlsRemoval) {
+    dispatch_block_cancel(self.blockedUrlsRemoval);
+    self.blockedUrlsRemoval = nil;
+  }
+
+  if (!self.blockedUrls.count) {
+    return;
+  }
+  __weak typeof(self) weakSelf = self;
+  NSMutableArray *rules = [NSMutableArray arrayWithCapacity:self.blockedUrls.count];
+  for (NSString *blockedUrl in self.blockedUrls) {
+    [rules addObject:@{
+      @"trigger": @{
+        @"url-filter": blockedUrl
+      },
+      @"action": @{
+        @"type": @"block"
+      }
+    }];
+  }
+  NSData *rulesData
+  = [NSJSONSerialization
+     dataWithJSONObject:rules
+     options:NSJSONWritingPrettyPrinted
+     error:nil];
+  NSString *rulesString = [[NSString alloc] initWithData:rulesData encoding:NSUTF8StringEncoding];
+  [[WKContentRuleListStore defaultStore]
+    compileContentRuleListForIdentifier:BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER
+  encodedContentRuleList:rulesString
+  completionHandler:^(WKContentRuleList *contentRuleList, NSError *error) {
+    if (!contentRuleList) {
+      return;
+    }
+    RNCWebView *strongSelf = weakSelf;
+    if (strongSelf) {
+      strongSelf.blockedUrlsContentRuleList = contentRuleList;
+      [strongSelf.webView.configuration.userContentController addContentRuleList:contentRuleList];
+    }
+  }];
+  if (self.blockedDuration > 0) {
+    self.blockedUrlsRemoval = dispatch_block_create(0, ^{
+      RNCWebView *strongSelf = weakSelf;
+      if (strongSelf) {
+        [strongSelf removeBlockedUrlsContentRuleList];
+      }
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.blockedDuration * NSEC_PER_SEC), dispatch_get_main_queue(), self.blockedUrlsRemoval);
+  }
 }
 
 @end

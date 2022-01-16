@@ -81,6 +81,8 @@ typedef enum RNCWebViewPermissionGrantType : NSUInteger {
 @property (nonatomic, assign) BOOL enableApplePay;
 @property (nonatomic, copy) NSArray<NSDictionary *> * _Nullable menuItems;
 @property (nonatomic, copy) RCTDirectEventBlock onCustomMenuSelection;
+@property (nonatomic, copy) NSArray<NSString *> * _Nullable blockedUrls;
+@property (nonatomic, assign) NSInteger blockedDuration;
 #if !TARGET_OS_OSX
 @property (nonatomic, weak) UIRefreshControl * _Nullable refreshControl;
 #endif
