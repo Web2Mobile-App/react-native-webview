@@ -1,4 +1,5 @@
-# React Native WebView - a Modern, Cross-Platform WebView for React Native
+
+# React Native WebView - Une WebView moderne et multiplateforme pour React Native
 
 [![star this repo](http://githubbadges.com/star.svg?user=react-native-webview&repo=react-native-webview&style=flat)](https://github.com/react-native-webview/react-native-webview)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
@@ -7,58 +8,61 @@
 [![NPM Version](https://img.shields.io/npm/v/react-native-webview.svg?style=flat-square)](https://www.npmjs.com/package/react-native-webview)
 [![Lean Core Extracted](https://img.shields.io/badge/Lean%20Core-Extracted-brightgreen.svg?style=flat-square)][lean-core-issue]
 
-**React Native WebView** is a modern, well-supported, and cross-platform WebView for React Native. It is intended to be a replacement for the built-in WebView (which will be [removed from core](https://github.com/react-native-community/discussions-and-proposals/pull/3)).
+**React Native WebView** est une WebView moderne, soutenue et multiplateforme pour React Native. Elle est destinée à remplacer la WebView built-in (qui va être [retiré du noyau](https://github.com/react-native-community/discussions-and-proposals/pull/3)).
 
-## Core Maintainers - Sponsoring companies
+## Mainteneurs principaux - Compagnies sponsors
 
-_This project is maintained for free by these people using both their free time and their company work time._
+_Ce projet est maintenu gratuitement par ces personnes durant leur temps libre et leur temps de travail._ 
 
-- [Thibault Malbranche](https://github.com/Titozzz) ([Twitter @titozzz](https://twitter.com/titozzz)) from [Brigad](https://brigad.co/about)
-- [Jamon Holmgren](https://github.com/jamonholmgren) ([Twitter @jamonholmgren](https://twitter.com/jamonholmgren)) from [Infinite Red](https://infinite.red/react-native)
-- [Alexander Sklar](https://github.com/asklar) ([Twitter @alexsklar](https://twitter.com/alexsklar)) from [React Native Windows @ Microsoft](https://microsoft.github.io/react-native-windows/)
-- [Chiara Mooney](https://github.com/chiaramooney) from [React Native Windows @ Microsoft](https://microsoft.github.io/react-native-windows/)
+- [Thibault Malbranche](https://github.com/Titozzz) ([Twitter @titozzz](https://twitter.com/titozzz)) de [Brigad](https://brigad.co/about)
+- [Jamon Holmgren](https://github.com/jamonholmgren) ([Twitter @jamonholmgren](https://twitter.com/jamonholmgren)) de [Infinite Red](https://infinite.red/react-native)
+- [Alexander Sklar](https://github.com/asklar) ([Twitter @alexsklar](https://twitter.com/alexsklar)) de [React Native Windows @ Microsoft](https://microsoft.github.io/react-native-windows/)
+- [Chiara Mooney](https://github.com/chiaramooney) de [React Native Windows @ Microsoft](https://microsoft.github.io/react-native-windows/)
 
-## Platforms Supported
+## Plateformes supportées
 
 - [x] iOS
 - [x] Android
 - [x] macOS
 - [x] Windows
 
-_Note: Expo support for React Native WebView started with [Expo SDK v33.0.0](https://blog.expo.io/expo-sdk-v33-0-0-is-now-available-52d1c99dfe4c)._
 
-## Getting Started
+_Note: Le support de React Native WebView par Expo a débuté avec [Expo SDK v33.0.0](https://blog.expo.io/expo-sdk-v33-0-0-is-now-available-52d1c99dfe4c)._
 
-Read our [Getting Started Guide](docs/Getting-Started.md). If any step seems unclear, please create a detailed issue.
+## Débuter 
 
-## Versioning
+Lisez attentivement notre guide (exclusivement en anglais) [Getting Started Guide](docs/Getting-Started.md). Si la moindre étape ne semble pas claire, merci de créer une **issue** détaillée.
 
-This project follows [semantic versioning](https://semver.org/). We do not hesitate to release breaking changes but they will be in a major version.
+## Versionnage
 
-**Breaking History:**
+Ce projet suit la [gestion sémantique de version](https://semver.org/).  Nous n'hésitons pas à publier des modifications "breaking-change", mais elles seront intégrées dans une version majeure.
+
+
+
+**Historique des versions majeures:**
 
 Current Version: ![version](https://img.shields.io/npm/v/react-native-webview.svg)
 
 - [11.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v11.0.0) - Android setSupportMultipleWindows.
-- [10.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v10.0.0) - Android Gradle plugin is only required when opening the project stand-alone
-- [9.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v9.0.0) - props updates to injectedJavaScript are no longer immutable.
-- [8.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v8.0.0) - onNavigationStateChange now triggers with hash url changes
-- [7.0.1](https://github.com/react-native-webview/react-native-webview/releases/tag/v7.0.1) - Removed UIWebView
-- [6.0.**2**](https://github.com/react-native-webview/react-native-webview/releases/tag/v6.0.2) - Update to AndroidX. Make sure to enable it in your project's `android/gradle.properties`. See [Getting Started Guide](docs/Getting-Started.md).
-- [5.0.**1**](https://github.com/react-native-webview/react-native-webview/releases/tag/v5.0.0) - Refactored the old postMessage implementation for communication from webview to native.
-- [4.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v4.0.0) - Added cache (enabled by default).
-- [3.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v3.0.0) - WKWebview: Add shared process pool so cookies and localStorage are shared across webviews in iOS (enabled by default).
-- [2.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v2.0.0) - First release this is a replica of the core webview component
+- [10.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v10.0.0) - Le plugin Android Gradle n'est obligatoire qu'en ouvrant le projet en mode **stand-alone**
+- [9.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v9.0.0) - Les mises à jour des props via  injectedJavaScript ne sont plus immuables
+- [8.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v8.0.0) - Désormais onNavigationStateChange se déclenche au changement du hash de l'url
+- [7.0.1](https://github.com/react-native-webview/react-native-webview/releases/tag/v7.0.1) - Suppression de UIWebView
+- [6.0.**2**](https://github.com/react-native-webview/react-native-webview/releases/tag/v6.0.2) - Mise à jour d'AndroidX. Soyez attentif à l'activer dans vos projet via `android/gradle.properties`. Voir [Getting Started Guide](docs/Getting-Started.md).
+- [5.0.**1**](https://github.com/react-native-webview/react-native-webview/releases/tag/v5.0.0) - Remaniement de l'ancienne implémentation de postMessage pour communiquer de la webview à react native.
+- [4.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v4.0.0) - Ajout d'un cache (activé par défaut).
+- [3.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v3.0.0) - WKWebview : Ajout d'un pool de processus partagé pour que les cookies et localStorage soient partagés entre les webviews dans iOS (activé par défaut).
+- [2.0.0](https://github.com/react-native-webview/react-native-webview/releases/tag/v2.0.0) - Première version, il s'agit d'une réplique du composant webview de base.
 
-**Upcoming:**
+**A venir:**
 
-- this.webView.postMessage() removal (never documented and less flexible than injectJavascript) -> [how to migrate](https://github.com/react-native-webview/react-native-webview/issues/809)
-- Kotlin rewrite
-- Maybe Swift rewrite
+- Suppression de this.webView.postMessage() (jamais documenté et moins dynamique que injectJavascript) -> [comment migrer](https://github.com/react-native-webview/react-native-webview/issues/809)
+- Réécriture du code Kotlin
+- Peut-être réécrutire du code Swift
 
-## Usage
+## Utilisation
 
-Import the `WebView` component from `react-native-webview` and use it like so:
+Importez le composant `WebView` de `react-native-webview` et utilisez le de la manière suivante :
 
 ```jsx
 import React, { Component } from 'react';
@@ -72,21 +76,20 @@ class MyWebComponent extends Component {
   }
 }
 ```
+Pour plus de détails, lisez la [Référence API](./docs/Reference.md) et le [Guide](./docs/Guide.md). Si vous êtes intéressé à contribuer, lisez le [Guide de contribution](./docs/Contributing.md).
 
-For more, read the [API Reference](./docs/Reference.md) and [Guide](./docs/Guide.md). If you're interested in contributing, check out the [Contributing Guide](./docs/Contributing.md).
+## Problèmes communs
 
-## Common issues
+- Si l'erreur `Invariant Violation: Native component for "RNCWebView does not exist"` intervient, cela signifie probablement que vous avez oublié d'executer `react-native link` ou qu'une erreur est intervenue durant le processus de liaison.
+- Si vous rencontrer une erreur de build durant l'execution de la tâche `:app:mergeDexRelease`, vous devez activer le support du multidex dans `android/app/build.gradle` comme discuté [ici](https://github.com/react-native-webview/react-native-webview/issues/1344#issuecomment-650544648)
 
-- If you're getting `Invariant Violation: Native component for "RNCWebView does not exist"` it likely means you forgot to run `react-native link` or there was some error with the linking process
-- If you encounter a build error during the task `:app:mergeDexRelease`, you need to enable multidex support in `android/app/build.gradle` as discussed in [this issue](https://github.com/react-native-webview/react-native-webview/issues/1344#issuecomment-650544648)
+## Contribuer
 
-## Contributing
+Voir [Contributing.md](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Contributing.md)
 
-See [Contributing.md](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Contributing.md)
+## Contributeurs
 
-## Contributors
-
-Thanks goes to these wonderful people ([emoji key](https://github.com/all-contributors/all-contributors#emoji-key-)):
+Un grand remerciement aux contributeurs ([emoji key](https://github.com/all-contributors/all-contributors#emoji-key-)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore -->
@@ -94,7 +97,8 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/all-contri
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+Ce projet suit les spécifications [all-contributors](https://github.com/all-contributors/all-contributors). Les contributions de toute nature sont les bienvenues !
 
 ## License
 
@@ -104,7 +108,7 @@ MIT
 
 This readme is available in:
 
-- [Brazilian portuguese](docs/README.portuguese.md)
-- [French](docs/README.french.md)
+- [English](../README.md)
+- [Brazilian portuguese](README.portuguese.md)
 
 [lean-core-issue]: https://github.com/facebook/react-native/issues/23313
