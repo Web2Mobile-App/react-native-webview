@@ -14,18 +14,16 @@ import React from 'react';
 import {
   UIManager as NotTypedUIManager,
   View,
-  requireNativeComponent,
   StyleSheet,
   Image,
   ImageSourcePropType,
   findNodeHandle,
 } from 'react-native';
-import {
-  createOnShouldStartLoadWithRequest,
-} from './WebViewShared';
+import {RCTWebView, RCTWebView2} from "./WebViewNativeComponent.windows";
+import { createOnShouldStartLoadWithRequest } from './WebViewShared';
 import {
   NativeWebViewWindows,
-  WebViewSharedProps,
+  WindowsWebViewProps,
   WebViewProgressEvent,
   WebViewNavigationEvent,
   WebViewErrorEvent,
@@ -35,11 +33,10 @@ import {
   State,
 } from './WebViewTypes';
 
+const {version} = require('react-native/Libraries/Core/ReactNativeVersion');
+
 const UIManager = NotTypedUIManager as RNCWebViewUIManagerWindows;
 const { resolveAssetSource } = Image;
-const RCTWebView: typeof NativeWebViewWindows = requireNativeComponent(
-  'RCTWebView',
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -59,7 +56,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class WebView extends React.Component<WebViewSharedProps, State> {
+export default class WebView extends React.Component<WindowsWebViewProps, State> {
 
   static defaultProps = {
     javaScriptEnabled: true,
@@ -72,10 +69,14 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
 
   webViewRef = React.createRef<NativeWebViewWindows>();
 
+  RnwVersionSupportsWebView2 = (version.major>1 || version.minor>=68);
+  
+  RCTWebViewString = (this.RnwVersionSupportsWebView2 && this.props.useWebView2) ? 'RCTWebView2' : 'RCTWebView';
+
   goForward = () => {
     UIManager.dispatchViewManagerCommand(
       this.getWebViewHandle(),
-      UIManager.getViewManagerConfig('RCTWebView').Commands.goForward,
+      UIManager.getViewManagerConfig(this.RCTWebViewString).Commands.goForward,
       undefined,
     );
   }
@@ -83,7 +84,7 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
   goBack = () => {
     UIManager.dispatchViewManagerCommand(
       this.getWebViewHandle(),
-      UIManager.getViewManagerConfig('RCTWebView').Commands.goBack,
+      UIManager.getViewManagerConfig(this.RCTWebViewString).Commands.goBack,
       undefined,
     );
   }
@@ -91,7 +92,7 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
   reload = () => {
     UIManager.dispatchViewManagerCommand(
       this.getWebViewHandle(),
-      UIManager.getViewManagerConfig('RCTWebView').Commands.reload,
+      UIManager.getViewManagerConfig(this.RCTWebViewString).Commands.reload,
       undefined,
     );
   }
@@ -99,16 +100,16 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
   injectJavaScript = (data: string) => {
     UIManager.dispatchViewManagerCommand(
       this.getWebViewHandle(),
-      UIManager.getViewManagerConfig('RCTWebView').Commands.injectJavaScript,
+      UIManager.getViewManagerConfig(this.RCTWebViewString).Commands.injectJavaScript,
       [data],
     );
   }
 
-  postMessage = (data: string) => {    
+  postMessage = (data: string) => {
     const message = this.getInjectableJSMessage(data);
     UIManager.dispatchViewManagerCommand(
       this.getWebViewHandle(),
-      UIManager.getViewManagerConfig('RCTWebView').Commands.injectJavaScript,
+      UIManager.getViewManagerConfig(this.RCTWebViewString).Commands.injectJavaScript,
       [message],
     );
   };
@@ -217,6 +218,7 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
       renderLoading,
       style,
       containerStyle,
+      useWebView2,
       ...otherProps
     } = this.props;
 
@@ -253,8 +255,7 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
     );
 
     const NativeWebView
-    = (nativeConfig.component as typeof NativeWebViewWindows | undefined)
-    || RCTWebView;
+    = (this.RnwVersionSupportsWebView2 && this.props.useWebView2)? RCTWebView2 : RCTWebView;
 
     const webView = (
       <NativeWebView
