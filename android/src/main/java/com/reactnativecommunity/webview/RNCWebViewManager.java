@@ -1204,7 +1204,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           null
         );
       }
-      if (!request.isForMainFrame()
+      if (requestUrl.startsWith("http")
+        && !request.isForMainFrame()
         && !webView.isInjectedJavaScriptForMainFrameOnly()
         && webView.getInjectedJS() != null
         && !webView.getInjectedJS().isEmpty()) {
