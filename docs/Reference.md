@@ -44,6 +44,7 @@ This document lays out the current public properties and methods for the React N
 - [`applicationNameForUserAgent`](Reference.md#applicationNameForUserAgent)
 - [`allowsFullscreenVideo`](Reference.md#allowsfullscreenvideo)
 - [`allowsInlineMediaPlayback`](Reference.md#allowsinlinemediaplayback)
+- [`allowsAirPlayForMediaPlayback`](Reference.md#allowsAirPlayForMediaPlayback)
 - [`bounces`](Reference.md#bounces)
 - [`overScrollMode`](Reference.md#overscrollmode)
 - [`contentInset`](Reference.md#contentinset)
@@ -86,6 +87,8 @@ This document lays out the current public properties and methods for the React N
 - [`forceDarkOn`](Reference.md#forceDarkOn)
 - [`useWebView2`](Reference.md#useWebView2)
 - [`minimumFontSize`](Reference.md#minimumFontSize)
+- [`downloadingMessage`](Reference.md#downloadingMessage)
+- [`lackPermissionToDownloadMessage`](Reference.md#lackPermissionToDownloadMessage)
 
 ## Methods Index
 
@@ -948,6 +951,15 @@ Boolean that determines whether HTML5 videos play inline or use the native full-
 | bool | No       | iOS      |
 
 ---
+### `allowsAirPlayForMediaPlayback`[⬆](#props-index)<!-- Link generated with jump2header -->
+
+A Boolean value indicating whether AirPlay is allowed. The default value is `false`.
+
+| Type    | Required | Platform      |
+| ------- | -------- | ------------- |
+| boolean | No       | iOS and macOS |
+
+---
 
 ### `bounces`[⬆](#props-index)<!-- Link generated with jump2header -->
 
@@ -1555,6 +1567,22 @@ Example:
 ```javascript
 <WebView minimumFontSize={1} />
 ```
+
+### `downloadingMessage`
+
+This is the message that is shown in the Toast when downloading a file via WebView. Default message is "Downloading".
+
+| Type   | Required | Platform |
+| ------ | -------- | -------- |
+| string | No       | Android  |
+
+### `lackPermissionToDownloadMessage`
+
+This is the message that is shown in the Toast when the webview is unable to download a file. Default message is "Cannot download files as permission was denied. Please provide permission to write to storage, in order to download files.".
+
+| Type   | Required | Platform |
+| ------ | -------- | -------- |
+| string | No       | Android  |
 
 ## Methods
 

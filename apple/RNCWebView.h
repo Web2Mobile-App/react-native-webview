@@ -51,6 +51,7 @@ typedef enum RNCWebViewPermissionGrantType : NSUInteger {
 @property (nonatomic, assign) BOOL pagingEnabled;
 @property (nonatomic, assign) CGFloat decelerationRate;
 @property (nonatomic, assign) BOOL allowsInlineMediaPlayback;
+@property (nonatomic, assign) BOOL allowsAirPlayForMediaPlayback;
 @property (nonatomic, assign) BOOL bounces;
 @property (nonatomic, assign) BOOL mediaPlaybackRequiresUserAction;
 #if WEBKIT_IOS_10_APIS_AVAILABLE
@@ -111,6 +112,7 @@ typedef enum RNCWebViewPermissionGrantType : NSUInteger {
 - (void)goBack;
 - (void)reload;
 - (void)stopLoading;
+- (void)requestFocus;
 #if !TARGET_OS_OSX
 - (void)addPullToRefreshControl;
 - (void)pullToRefresh:(UIRefreshControl *_Nonnull)refreshControl;
