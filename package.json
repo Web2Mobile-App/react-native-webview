@@ -24,7 +24,7 @@
     "prepare": "yarn build",
     "appium": "appium",
     "test:windows": "yarn jest --setupFiles=./jest-setups/jest.setup.js",
-    "yalc:publish": "yalc update && yarn && yalc publish --private"
+    "yalc:publish": "yarn cache clean react-native-webview && yalc update && yarn && yalc publish --private"
   },
   "rn-docs": {
     "title": "Webview",
