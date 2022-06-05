@@ -699,10 +699,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public void setInjectedJavaScriptExcludedUrls(
     WebView view,
     @Nullable ReadableArray injectedJavaScriptExcludedUrls) {
-    List<String> urls = new ArrayList<>();
+    List<Pattern> urls = new ArrayList<>();
     if (injectedJavaScriptExcludedUrls != null) {
       for (int i = 0; i < injectedJavaScriptExcludedUrls.size(); i++) {
-        urls.add(injectedJavaScriptExcludedUrls.getString(i));
+        urls.add(Pattern.compile(injectedJavaScriptExcludedUrls.getString(i)));
       }
     }
     ((RNCWebView) view).setInjectedJavaScriptExcludedUrls(urls);
@@ -1231,15 +1231,14 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         && !request.isForMainFrame()
         && !webView.isInjectedJavaScriptForMainFrameOnly()
         && webView.getInjectedJS() != null
-        && !webView.getInjectedJS().isEmpty()) {
+        && !webView.getInjectedJS().isEmpty()
+        && !webView.shouldExcludeUrlFromInjectedJavaScript(requestUrl)) {
         Map<String, String> requestHeaders = request.getRequestHeaders();
         String requestMethod = request.getMethod();
         // check whether or not the request is to load a html page
         if (requestMethod.equals("GET")
           && requestHeaders.containsKey("Accept")
-          && requestHeaders.get("Accept").contains("text/html")
-          && (webView.getInjectedJavaScriptExcludedUrls() == null
-          || !webView.getInjectedJavaScriptExcludedUrls().contains(requestUrl))) {
+          && requestHeaders.get("Accept").contains("text/html")) {
           // load content of an iframe and inject javascript into it
           HttpURLConnection urlConnection = null;
           InputStreamReader inputStreamReader = null;
@@ -1696,7 +1695,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     protected boolean nestedScrollEnabled = false;
     protected ProgressChangedFilter progressChangedFilter;
 
-    protected List<String> injectedJavaScriptExcludedUrls;
+    protected List<Pattern> injectedJavaScriptExcludedUrls;
     protected Date startDate;
     protected long blockedDuration;
     protected List<Pattern> blockedUrls;
@@ -2015,11 +2014,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       return injectedJS;
     }
 
-    public List<String> getInjectedJavaScriptExcludedUrls() {
+    public List<Pattern> getInjectedJavaScriptExcludedUrls() {
       return injectedJavaScriptExcludedUrls;
     }
 
-    public void setInjectedJavaScriptExcludedUrls(List<String> injectedJavaScriptExcludedUrls) {
+    public void setInjectedJavaScriptExcludedUrls(List<Pattern> injectedJavaScriptExcludedUrls) {
       this.injectedJavaScriptExcludedUrls = injectedJavaScriptExcludedUrls;
     }
 
@@ -2029,6 +2028,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     public void setBlockedDuration(long blockedDuration) {
       this.blockedDuration = blockedDuration;
+    }
+
+    public boolean shouldExcludeUrlFromInjectedJavaScript(String url) {
+      if (injectedJavaScriptExcludedUrls == null
+        || injectedJavaScriptExcludedUrls.size() == 0) {
+        return false;
+      }
+      for (Pattern pattern: injectedJavaScriptExcludedUrls) {
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.matches()) {
+          return true;
+        }
+      }
+      return false;
     }
 
     public boolean shouldBlockUrl(String url) {
