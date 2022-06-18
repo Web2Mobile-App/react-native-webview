@@ -49,6 +49,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
+import androidx.webkit.ServiceWorkerClientCompat;
+import androidx.webkit.ServiceWorkerControllerCompat;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
 
@@ -732,7 +734,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   @Override
   protected void addEventEmitters(ThemedReactContext reactContext, WebView view) {
     // Do not register default touch emitter and let WebView implementation handle touches
-    view.setWebViewClient(new RNCWebViewClient());
+    view.setWebViewClient(new RNCWebViewClient(view));
   }
 
   @Override
@@ -958,12 +960,32 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
   protected static class RNCWebViewClient extends WebViewClient {
 
+    protected WebView mWebView;
     protected boolean mLastLoadFailed = false;
     protected @Nullable
     ReadableArray mUrlPrefixesForDefaultIntent;
     protected RNCWebView.ProgressChangedFilter progressChangedFilter = null;
     protected @Nullable String ignoreErrFailedForThisURL = null;
     protected @Nullable BasicAuthCredential basicAuthCredential = null;
+
+    public RNCWebViewClient(WebView webView) {
+      mWebView = webView;
+      if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE)) {
+        ServiceWorkerControllerCompat.getInstance()
+          .setServiceWorkerClient(
+            new ServiceWorkerClientCompat() {
+              @Nullable
+              @Override
+              public WebResourceResponse shouldInterceptRequest(@NonNull WebResourceRequest request) {
+                return RNCWebViewClient.this.shouldInterceptRequest(
+                  RNCWebViewClient.this.mWebView,
+                  request
+                );
+              }
+            }
+          );
+      }
+    }
 
     public void setIgnoreErrFailedForThisURL(@Nullable String url) {
       ignoreErrFailedForThisURL = url;
