@@ -60,6 +60,10 @@ repositories {
   mavenCentral()
   google()
 
+  maven {
+    url "https://maven.mozilla.org/maven2"
+  }
+
   def found = false
   def defaultDir = null
   def androidSourcesName = 'React Native sources'
@@ -128,10 +132,12 @@ repositories {
 
 def kotlin_version = getExtOrDefault('kotlinVersion')
 def webkit_version = getExtOrDefault('webkitVersion')
+def gecko_view_version = getExtOrDefault('geckoViewVersion')
 
 dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "androidx.webkit:webkit:$webkit_version"
+  api "org.mozilla.geckoview:geckoview:${gecko_view_version}"
 }

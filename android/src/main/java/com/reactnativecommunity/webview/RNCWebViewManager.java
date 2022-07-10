@@ -35,15 +35,17 @@ import android.webkit.SslErrorHandler;
 import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
+
+import com.reactnativecommunity.web2mobile.WebChromeClient;
+
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
-import android.webkit.WebStorage;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
+import com.reactnativecommunity.web2mobile.WebSettings;
+import com.reactnativecommunity.web2mobile.WebView;
+import com.reactnativecommunity.web2mobile.WebViewClient;
 
+import android.webkit.WebStorage;
+import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -51,7 +53,6 @@ import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 import androidx.webkit.ServiceWorkerClientCompat;
 import androidx.webkit.ServiceWorkerControllerCompat;
-import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
 
 import com.facebook.common.logging.FLog;
@@ -407,7 +408,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   @ReactProp(name = "thirdPartyCookiesEnabled")
   public void setThirdPartyCookiesEnabled(WebView view, boolean enabled) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      CookieManager.getInstance().setAcceptThirdPartyCookies(view, enabled);
+      view.getSettings().setCookiesEnabled(enabled);
     }
   }
 
@@ -674,28 +675,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
   @ReactProp(name = "forceDarkOn")
   public void setForceDarkOn(WebView view, boolean enabled) {
-    // Only Android 10+ support dark mode
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-      // Switch WebView dark mode
-      if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-        int forceDarkMode = enabled ? WebSettingsCompat.FORCE_DARK_ON : WebSettingsCompat.FORCE_DARK_OFF;
-        WebSettingsCompat.setForceDark(view.getSettings(), forceDarkMode);
-      }
-
-      // Set how WebView content should be darkened.
-      // PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING:  checks for the "color-scheme" <meta> tag.
-      // If present, it uses media queries. If absent, it applies user-agent (automatic)
-      // More information about Force Dark Strategy can be found here:
-      // https://developer.android.com/reference/androidx/webkit/WebSettingsCompat#setForceDarkStrategy(android.webkit.WebSettings)
-      if (enabled && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
-        WebSettingsCompat.setForceDarkStrategy(view.getSettings(), WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING);
-      }
-    }
+    view.getSettings().setForceDarkOn(enabled);
   }
 
   @ReactProp(name = "minimumFontSize")
   public void setMinimumFontSize(WebView view, int fontSize) {
     view.getSettings().setMinimumFontSize(fontSize);
+  }
+
+  @ReactProp(name = "useGecko")
+  public void setUseGecko(WebView webView, boolean useGecko) {
+    webView.setUseGecko(useGecko);
   }
 
   @ReactProp(name = "injectedJavaScriptExcludedUrls")
@@ -770,6 +760,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       .put("injectJavaScript", COMMAND_INJECT_JAVASCRIPT)
       .put("loadUrl", COMMAND_LOAD_URL)
       .put("requestFocus", COMMAND_FOCUS)
+      .put("reset", COMMAND_RESET)
       .put("clearFormData", COMMAND_CLEAR_FORM_DATA)
       .put("clearCache", COMMAND_CLEAR_CACHE)
       .put("clearHistory", COMMAND_CLEAR_HISTORY)
@@ -868,7 +859,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         }
 
         @Override
-        public void onShowCustomView(View view, CustomViewCallback callback) {
+        public void onShowCustomView(View view, android.webkit.WebChromeClient.CustomViewCallback callback) {
           if (mVideoView != null) {
             callback.onCustomViewHidden();
             return;
@@ -970,7 +961,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     public RNCWebViewClient(WebView webView) {
       mWebView = webView;
-      if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE)) {
+      if (!webView.isUseGecko() && WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE)) {
         ServiceWorkerControllerCompat.getInstance()
           .setServiceWorkerClient(
             new ServiceWorkerClientCompat() {
@@ -1238,6 +1229,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         return true;
     }
 
+    @Override
+    public void onCrash(WebView webView) {
+      super.onCrash(webView);
+
+      WritableMap event = createWebViewEvent(webView, webView.getUrl());
+      event.putBoolean("didCrash", true);
+
+      ((RNCWebView) webView).dispatchEvent(
+        webView,
+        new TopRenderProcessGoneEvent(webView.getId(), event)
+      );
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Nullable
     @Override
@@ -1415,7 +1419,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     protected View mWebView;
 
     protected View mVideoView;
-    protected WebChromeClient.CustomViewCallback mCustomViewCallback;
+    protected android.webkit.WebChromeClient.CustomViewCallback mCustomViewCallback;
 
     /*
      * - Permissions -
@@ -1446,10 +1450,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
 
     @Override
-    public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+    public boolean onCreateWindow(android.webkit.WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
 
-      final WebView newWebView = new WebView(view.getContext());
-      final WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+      final android.webkit.WebView newWebView = new android.webkit.WebView(view.getContext());
+      final android.webkit.WebView.WebViewTransport transport = (android.webkit.WebView.WebViewTransport) resultMsg.obj;
       transport.setWebView(newWebView);
       resultMsg.sendToTarget();
 
@@ -1667,9 +1671,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, android.webkit.WebChromeClient.FileChooserParams fileChooserParams) {
       String[] acceptTypes = fileChooserParams.getAcceptTypes();
-      boolean allowMultiple = fileChooserParams.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
+      boolean allowMultiple = fileChooserParams.getMode() == android.webkit.WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
       return getModule(mReactContext).startPhotoPickerIntent(filePathCallback, acceptTypes, allowMultiple);
     }
 
@@ -1700,19 +1704,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    * to call {@link WebView#destroy} on activity destroy event and also to clear the client
    */
   protected static class RNCWebView extends WebView implements LifecycleEventListener {
-    protected @Nullable
-    String injectedJS;
-    protected @Nullable
-    String injectedJSBeforeContentLoaded;
+    // protected @Nullable
+    // String injectedJS;
+    // protected @Nullable
+    // String injectedJSBeforeContentLoaded;
 
     /**
      * android.webkit.WebChromeClient fundamentally does not support JS injection into frames other
      * than the main frame, so these two properties are mostly here just for parity with iOS & macOS.
      */
-    protected boolean injectedJavaScriptForMainFrameOnly = true;
+    protected boolean messagingEnabledForMainFrameOnly = true;
     protected boolean injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true;
 
-    protected boolean messagingEnabledForMainFrameOnly = true;
     protected boolean messagingEnabled = false;
     protected @Nullable
     String messagingModuleName;
@@ -1835,19 +1838,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
 
     public void setInjectedJavaScript(@Nullable String js) {
-      injectedJS = js;
+      super.setInjectedJavaScript(js);
     }
 
     public void setInjectedJavaScriptBeforeContentLoaded(@Nullable String js) {
-      injectedJSBeforeContentLoaded = js;
+      super.setInjectedJSBeforeContentLoaded(js);
     }
 
     public void setInjectedJavaScriptForMainFrameOnly(boolean enabled) {
-      injectedJavaScriptForMainFrameOnly = enabled;
+      super.setInjectedJavaScriptForMainFrameOnly(enabled);
     }
 
     public void setInjectedJavaScriptBeforeContentLoadedForMainFrameOnly(boolean enabled) {
-      injectedJavaScriptBeforeContentLoadedForMainFrameOnly = enabled;
+      super.setInjectedJavaScriptBeforeContentLoadedForMainFrameOnly(enabled);
     }
 
     protected RNCWebViewBridge createRNCWebViewBridge(RNCWebView webView) {
@@ -1915,6 +1918,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       }
     }
 
+    @Override
     public void onMessage(String message) {
       ReactContext reactContext = (ReactContext) this.getContext();
       RNCWebView mContext = this;
@@ -2075,6 +2079,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       return false;
     }
 
+    @Override
     public boolean shouldBlockUrl(String url) {
       if (blockedUrls == null
         || blockedUrls.size() == 0

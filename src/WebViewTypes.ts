@@ -344,6 +344,7 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   minimumFontSize?: number;
   downloadingMessage?: string;
   lackPermissionToDownloadMessage?: string;
+  useGecko?: boolean;
   injectedJavaScriptExcludedUrls?: string[];
 }
 
@@ -1129,6 +1130,12 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * @platform android
    */
   lackPermissionToDownloadMessage?: string;
+
+  /**
+   * Used on Android only, controls whether or not to use gecko view
+   * @platform android
+   */
+   useGecko?: boolean;
 
   /**
    * Used on Android only, controls whether injectedJavaScript should not be loaded in web page of

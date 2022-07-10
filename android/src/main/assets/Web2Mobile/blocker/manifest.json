@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "name": "web2mobile_blocker",
+  "version": "1.0.0",
+  "description": "",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{33333333-3333-3333-3333-333333333333}"
+    }
+  },
+  "background": {
+    "page": "blocker.html",
+    "persistent": true
+  },
+  "permissions": [
+    "nativeMessaging",
+    "geckoViewAddons",
+    "nativeMessagingFromContent",
+    "<all_urls>",
+    "webRequest",
+    "webRequestBlocking"
+  ]
+}
