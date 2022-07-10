@@ -89,7 +89,8 @@ RCTAutoInsetsProtocol>
 @property (nonatomic, strong) WKUserScript *atStartScript;
 @property (nonatomic, strong) WKUserScript *atEndScript;
 @property (nonatomic, strong) WKContentRuleList *blockedUrlsContentRuleList;
-@property (nonatomic, copy) dispatch_block_t blockedUrlsRemoval;
+@property (nonatomic, copy) dispatch_source_t blockedUrlsTimer;
+@property (nonatomic, copy) dispatch_source_t unblockedUrlsTimer;
 @end
 
 @implementation RNCWebView
@@ -1675,30 +1676,8 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
   }
 }
 
-- (void)removeBlockedUrlsContentRuleList
+- (void)addBlockedUrlsContentRuleList
 {
-  if (self.blockedUrlsContentRuleList) {
-    [self.webView.configuration.userContentController removeContentRuleList:self.blockedUrlsContentRuleList];
-    self.blockedUrlsContentRuleList = nil;
-  }
-}
-
-- (void)setupBlockedUrlsContentRuleList
-{
-  if (!self.webView) {
-    return;
-  }
-
-  [self removeBlockedUrlsContentRuleList];
-  if (self.blockedUrlsRemoval) {
-    dispatch_block_cancel(self.blockedUrlsRemoval);
-    self.blockedUrlsRemoval = nil;
-  }
-
-  if (!self.blockedUrls.count) {
-    return;
-  }
-  __weak typeof(self) weakSelf = self;
   NSMutableArray *rules = [NSMutableArray arrayWithCapacity:self.blockedUrls.count];
   for (NSString *blockedUrl in self.blockedUrls) {
     [rules addObject:@{
@@ -1716,6 +1695,7 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
      options:NSJSONWritingPrettyPrinted
      error:nil];
   NSString *rulesString = [[NSString alloc] initWithData:rulesData encoding:NSUTF8StringEncoding];
+  __weak typeof(self) weakSelf = self;
   [[WKContentRuleListStore defaultStore]
     compileContentRuleListForIdentifier:BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER
   encodedContentRuleList:rulesString
@@ -1729,15 +1709,56 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
       [strongSelf.webView.configuration.userContentController addContentRuleList:contentRuleList];
     }
   }];
-  if (self.blockedDuration > 0) {
-    self.blockedUrlsRemoval = dispatch_block_create(0, ^{
-      RNCWebView *strongSelf = weakSelf;
-      if (strongSelf) {
-        [strongSelf removeBlockedUrlsContentRuleList];
-      }
-    });
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.blockedDuration * NSEC_PER_SEC), dispatch_get_main_queue(), self.blockedUrlsRemoval);
+}
+
+- (void)removeBlockedUrlsContentRuleList
+{
+  if (self.blockedUrlsContentRuleList) {
+    [self.webView.configuration.userContentController removeContentRuleList:self.blockedUrlsContentRuleList];
+    self.blockedUrlsContentRuleList = nil;
   }
+}
+
+- (void)setupBlockedUrlsContentRuleList
+{
+  if (!self.webView) {
+    return;
+  }
+
+  [self removeBlockedUrlsContentRuleList];
+  if (self.blockedUrlsTimer) {
+    dispatch_source_cancel(self.blockedUrlsTimer);
+    self.blockedUrlsTimer = nil;
+  }
+  if (self.unblockedUrlsTimer) {
+    dispatch_source_cancel(self.unblockedUrlsTimer);
+    self.unblockedUrlsTimer = nil;
+  }
+
+  if (!self.blockedUrls.count || self.blockedUrlsDuration <= 0 || self.unblockedUrlsDuration <= 0) {
+    return;
+  }
+
+  NSInteger duration = self.blockedUrlsDuration + self.unblockedUrlsDuration;
+  __weak typeof(self) weakSelf = self;
+
+  self.blockedUrlsTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+  dispatch_source_set_timer(self.blockedUrlsTimer, dispatch_time(DISPATCH_TIME_NOW, 0), duration, 0);
+  dispatch_source_set_event_handler(self.blockedUrlsTimer, ^{
+    RNCWebView *strongSelf = weakSelf;
+    if (strongSelf) {
+      [strongSelf addBlockedUrlsContentRuleList];
+    }
+  });
+
+  self.unblockedUrlsTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+  dispatch_source_set_timer(self.unblockedUrlsTimer, dispatch_time(DISPATCH_TIME_NOW, self.blockedUrlsDuration * NSEC_PER_SEC), duration, 0);
+  dispatch_source_set_event_handler(self.unblockedUrlsTimer, ^{
+    RNCWebView *strongSelf = weakSelf;
+    if (strongSelf) {
+      [strongSelf removeBlockedUrlsContentRuleList];
+    }
+  });
 }
 
 @end

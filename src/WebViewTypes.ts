@@ -312,7 +312,8 @@ export interface CommonNativeWebViewProps extends ViewProps {
   applicationNameForUserAgent?: string;
   basicAuthCredential?: BasicAuthCredential;
   blockedUrls?: string[];
-  blockedDuration?: number;
+  blockedUrlsDuration?: number;
+  unblockedUrlsDuration?: number;
 }
 
 export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
@@ -1323,7 +1324,12 @@ export interface WebViewSharedProps extends ViewProps {
   blockedUrls?: string[];
 
   /**
-   * duration to block urls from launch
+   * duration to block urls from launch, repeatedly
    */
-  blockedDuration?: number;
+  blockedUrlsDuration?: number;
+
+   /**
+   * duration to unblock urls from launch, repeatedly
+   */
+  unblockedUrlsDuration?: number;
 }
