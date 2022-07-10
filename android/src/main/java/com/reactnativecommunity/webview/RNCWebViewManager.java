@@ -714,11 +714,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     ((RNCWebView) view).setBlockedUrls(patterns);
   }
 
-  @ReactProp(name = "blockedDuration")
-  public void setBlockedDuration(
+  @ReactProp(name = "blockedUrlsDuration")
+  public void setBlockedUrlsDuration(
     WebView view,
-    int blockedDuration) {
-    ((RNCWebView) view).setBlockedDuration(blockedDuration * 1000L);
+    int blockedUrlsDuration) {
+    ((RNCWebView) view).setBlockedUrlsDuration(blockedUrlsDuration * 1000L);
+  }
+
+  @ReactProp(name = "unblockedUrlsDuration")
+  public void setUnblockedUrlsDuration(
+    WebView view,
+    int unblockedUrlsDuration) {
+    ((RNCWebView) view).setUnblockedUrlsDuration(unblockedUrlsDuration * 1000L);
   }
 
   @Override
@@ -1730,9 +1737,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     protected ProgressChangedFilter progressChangedFilter;
 
     protected List<Pattern> injectedJavaScriptExcludedUrls;
-    protected Date startDate;
-    protected long blockedDuration;
     protected List<Pattern> blockedUrls;
+    protected long blockedUrlsDuration;
+    protected long unblockedUrlsDuration;
+    protected Date blockedDate;
 
     /**
      * WebView must be created with an context of the current activity
@@ -1744,8 +1752,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       super(reactContext);
       this.createCatalystInstance();
       progressChangedFilter = new ProgressChangedFilter();
-      startDate = new Date();
-      blockedDuration = 60_000L;
+      blockedDate = new Date();
+      blockedUrlsDuration = 0L;
+      unblockedUrlsDuration = 0L;
     }
 
     public void setIgnoreErrFailedForThisURL(String url) {
@@ -2061,8 +2070,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       this.blockedUrls = blockedUrls;
     }
 
-    public void setBlockedDuration(long blockedDuration) {
-      this.blockedDuration = blockedDuration;
+    public void setBlockedUrlsDuration(long blockedUrlsDuration) {
+      this.blockedUrlsDuration = blockedUrlsDuration;
+    }
+
+    public void setUnblockedUrlsDuration(long unblockedUrlsDuration) {
+      this.unblockedUrlsDuration = unblockedUrlsDuration;
     }
 
     public boolean shouldExcludeUrlFromInjectedJavaScript(String url) {
@@ -2083,7 +2096,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     public boolean shouldBlockUrl(String url) {
       if (blockedUrls == null
         || blockedUrls.size() == 0
-        || new Date().getTime() - startDate.getTime() >= blockedDuration) {
+        || blockedUrlsDuration <= 0
+        || unblockedUrlsDuration <= 0) {
+        return false;
+      }
+      long time = new Date().getTime() - blockedDate.getTime();
+      long i = time / (blockedUrlsDuration + unblockedUrlsDuration);
+      if (time >= (i + 1) * blockedUrlsDuration + i * unblockedUrlsDuration) {
         return false;
       }
       for (Pattern blockedUrl: blockedUrls) {

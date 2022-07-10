@@ -83,7 +83,8 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *_Nonnull)request
 @property (nonatomic, copy) NSArray<NSDictionary *> * _Nullable menuItems;
 @property (nonatomic, copy) RCTDirectEventBlock onCustomMenuSelection;
 @property (nonatomic, copy) NSArray<NSString *> * _Nullable blockedUrls;
-@property (nonatomic, assign) NSInteger blockedDuration;
+@property (nonatomic, assign) NSInteger blockedUrlsDuration;
+@property (nonatomic, assign) NSInteger unblockedUrlsDuration;
 #if !TARGET_OS_OSX
 @property (nonatomic, weak) UIRefreshControl * _Nullable refreshControl;
 #endif
