@@ -89,8 +89,8 @@ RCTAutoInsetsProtocol>
 @property (nonatomic, strong) WKUserScript *atStartScript;
 @property (nonatomic, strong) WKUserScript *atEndScript;
 @property (nonatomic, strong) WKContentRuleList *blockedUrlsContentRuleList;
-@property (nonatomic, copy) dispatch_source_t blockedUrlsTimer;
-@property (nonatomic, copy) dispatch_source_t unblockedUrlsTimer;
+@property (nonatomic, strong) dispatch_source_t blockedUrlsTimer;
+@property (nonatomic, strong) dispatch_source_t unblockedUrlsTimer;
 @end
 
 @implementation RNCWebView
