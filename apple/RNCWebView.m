@@ -89,8 +89,8 @@ RCTAutoInsetsProtocol>
 @property (nonatomic, strong) WKUserScript *atStartScript;
 @property (nonatomic, strong) WKUserScript *atEndScript;
 @property (nonatomic, strong) WKContentRuleList *blockedUrlsContentRuleList;
-@property (nonatomic, copy) dispatch_source_t blockedUrlsTimer;
-@property (nonatomic, copy) dispatch_source_t unblockedUrlsTimer;
+@property (nonatomic, strong) dispatch_source_t blockedUrlsTimer;
+@property (nonatomic, strong) dispatch_source_t unblockedUrlsTimer;
 @end
 
 @implementation RNCWebView
@@ -237,6 +237,7 @@ RCTAutoInsetsProtocol>
 - (void)dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
+  [self clearTimers];
 }
 
 - (void)tappedMenuItem:(NSString *)eventType
@@ -1719,13 +1720,8 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
   }
 }
 
-- (void)setupBlockedUrlsContentRuleList
+- (void)clearTimers
 {
-  if (!self.webView) {
-    return;
-  }
-
-  [self removeBlockedUrlsContentRuleList];
   if (self.blockedUrlsTimer) {
     dispatch_source_cancel(self.blockedUrlsTimer);
     self.blockedUrlsTimer = nil;
@@ -1734,6 +1730,16 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
     dispatch_source_cancel(self.unblockedUrlsTimer);
     self.unblockedUrlsTimer = nil;
   }
+}
+
+- (void)setupBlockedUrlsContentRuleList
+{
+  if (!self.webView) {
+    return;
+  }
+
+  [self removeBlockedUrlsContentRuleList];
+  [self clearTimers];
 
   if (!self.blockedUrls.count || self.blockedUrlsDuration <= 0 || self.unblockedUrlsDuration <= 0) {
     return;
@@ -1750,6 +1756,7 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
       [strongSelf addBlockedUrlsContentRuleList];
     }
   });
+  dispatch_resume(self.blockedUrlsTimer);
 
   self.unblockedUrlsTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
   dispatch_source_set_timer(self.unblockedUrlsTimer, dispatch_time(DISPATCH_TIME_NOW, self.blockedUrlsDuration * NSEC_PER_SEC), duration, 0);
@@ -1759,6 +1766,7 @@ NSString *const BLOCKED_URLS_CONTENT_RULE_LIST_IDENTIFIER = @"W2MBlockedUrlsCont
       [strongSelf removeBlockedUrlsContentRuleList];
     }
   });
+  dispatch_resume(self.unblockedUrlsTimer);
 }
 
 @end
