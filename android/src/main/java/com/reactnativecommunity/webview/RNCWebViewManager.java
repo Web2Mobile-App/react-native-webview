@@ -763,7 +763,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       .put("injectJavaScript", COMMAND_INJECT_JAVASCRIPT)
       .put("loadUrl", COMMAND_LOAD_URL)
       .put("requestFocus", COMMAND_FOCUS)
-      .put("reset", COMMAND_RESET)
       .put("clearFormData", COMMAND_CLEAR_FORM_DATA)
       .put("clearCache", COMMAND_CLEAR_CACHE)
       .put("clearHistory", COMMAND_CLEAR_HISTORY)
@@ -2108,21 +2107,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         }
       }
       return false;
-    }
-
-    public void reset() {
-      WebStorage.getInstance().deleteAllData();
-      clearCache(true);
-      clearFormData();
-      clearHistory();
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-        evaluateJavascript("localStorage.clear();sessionStorage.clear();", new ValueCallback<String>() {
-          @Override
-          public void onReceiveValue(String value) {
-            reload();
-          }
-        });
-      }
     }
   }
 }

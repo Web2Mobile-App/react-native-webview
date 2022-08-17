@@ -45,6 +45,7 @@ import org.mozilla.geckoview.GeckoRuntime;
 import org.mozilla.geckoview.GeckoRuntimeSettings;
 import org.mozilla.geckoview.GeckoSession;
 import org.mozilla.geckoview.GeckoView;
+import org.mozilla.geckoview.StorageController;
 import org.mozilla.geckoview.WebExtension;
 import org.mozilla.geckoview.WebRequestError;
 
@@ -468,6 +469,8 @@ public class WebView extends FrameLayout implements
           }
         });
       }
+    } else if (geckoRuntime != null) {
+      geckoRuntime.getStorageController().clearData(StorageController.ClearFlags.ALL);
     }
   }
 
