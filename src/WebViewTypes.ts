@@ -345,6 +345,7 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   minimumFontSize?: number;
   downloadingMessage?: string;
   lackPermissionToDownloadMessage?: string;
+  allowsProtectedMedia?: boolean;
   useGecko?: boolean;
   injectedJavaScriptExcludedUrls?: string[];
 }
@@ -746,6 +747,7 @@ export interface IOSWebViewProps extends WebViewSharedProps {
   /**
    * An array of objects which will be added to the UIMenu controller when selecting text.
    * These will appear after a long press to select text.
+   * @platform ios
    */
   menuItems?: WebViewCustomMenuItems[];
 
@@ -754,6 +756,7 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * It passes a WebViewEvent with a `nativeEvent`, where custom keys are passed:
    * `customMenuKey`: the string of the menu item
    * `selectedText`: the text selected on the document
+   * @platform ios
    */
   onCustomMenuSelection?: (event: WebViewEvent) => void;
 }
@@ -1131,6 +1134,13 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * @platform android
    */
   lackPermissionToDownloadMessage?: string;
+
+  /**
+   * Boolean value to control whether webview can play media protected by DRM.
+   * Default is false.
+   * @platform android
+   */
+  allowsProtectedMedia?: boolean;
 
   /**
    * Used on Android only, controls whether or not to use gecko view
